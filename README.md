@@ -3,7 +3,7 @@
 KOMB uses K-Core and PageRank to analyze core genomes and repeats in single and metagenomes
 
 **Dependencies:** 2. In order to run KOMB, you will need [Python 2.7.x](https://www.python.org/downloads/), [Kraken](https://github.com/DerrickWood/kraken),  [Bcalm2](https://github.com/GATB/bcalm)
-and [Lighter](https://github.com/mourisl/Lighter).
+and [Lighter](https://github.com/mourisl/Lighter), [C++ -11](http://www.cplusplus.com/).
 
 You also need _igraph-c_, a popular C library for large scale network analysis as described [here](https://igraph.org/c/).
 
