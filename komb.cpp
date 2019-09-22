@@ -182,7 +182,7 @@ void createGraph(BOOST_C::vector<BOOST_C::vector<int> > &u_vec, int num_unitig, 
 	else{
 		f = fopen((dir+"/"+"edges.txt").c_str(),"w");
 	}
-	printConsole("Number of reads: "+to_string(u_map.size()));
+	printConsole("Number of reads: "+to_string(u_vec.size()));
 	#pragma omp parallel for
 	for(int i = 0; i<u_vec.size();i++){
 		BOOST_C::vector<int> temp = u_vec[i];
@@ -327,7 +327,7 @@ int main(int argc, char* argv[]){
 	BOOST_C::vector<BOOST_C::vector<int> > u_vec  = processDictionary(u_map1,u_map2);
 	
 	//build graph
-	createGraph(u_map, num_unitig, dir);
+	createGraph(u_vec, num_unitig, dir);
 	
 	//process graph
 	processGraph(dir);	
