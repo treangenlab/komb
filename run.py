@@ -83,7 +83,7 @@ def callBcalmMeta(folder):
 		sys.exit(1)
 
 
-def callBowtie2Meta(read1size,read2size,folder):
+def callBowtie2Meta(read1size,read2size,folder,numhits):
 	try:
 		p = subprocess.check_output('bowtie2-build '+folder+'/final.unitigs.fa idx', shell=True)
 		print >> sys.stderr, time.strftime("%c")+': Bowtie2 index created'
@@ -92,14 +92,14 @@ def callBowtie2Meta(read1size,read2size,folder):
 		sys.exit(1)
 		
 	try:
-		p = subprocess.check_output('bowtie2 -f -x idx --sensitive -k 1000 -3 '+str(read1size-33)+' -U '+ folder+'/reads1.fa'+' -p 100 --no-unal > '+folder+'/alignment1.sam', shell=True)
+		p = subprocess.check_output('bowtie2 -f -x idx --sensitive -k '+str(numhits)+'  -3 '+str(read1size-33)+' -U '+ folder+'/reads1.fa'+' -p 100 --no-unal > '+folder+'/alignment1.sam', shell=True)
 		print >> sys.stderr, time.strftime("%c")+': Alignment1.sam created'
 	except subprocess.CalledProcessError as err:
 		print >> sys.stderr,time.strftime("%c")+': Error in bowtie2-align -> Alignment1'
 		sys.exit(1)
 
 	try:
-		p = subprocess.check_output('bowtie2 -f -x idx --sensitive -k 1000 -5 '+str(read2size-33)+' -U '+folder+ '/reads2.fa' +' -p 100 --no-unal > '+ folder+'/alignment2.sam', shell=True)
+		p = subprocess.check_output('bowtie2 -f -x idx --sensitive -k '+str(numhits)+' -5 '+str(read2size-33)+' -U '+folder+ '/reads2.fa' +' -p 100 --no-unal > '+ folder+'/alignment2.sam', shell=True)
 		print >> sys.stderr, time.strftime("%c")+': Alignment2.sam created'
 	except subprocess.CalledProcessError as err:
 		print >> sys.stderr,time.strftime("%c")+': Error in bowtie2-align -> Alignment2'
@@ -134,7 +134,7 @@ def callBcalm():
 		sys.exit(1)
 
 
-def callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2, mode):
+def callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2,mode,numhits):
 
 	try:
 		p = subprocess.check_output('bowtie2-build final.unitigs.fa idx', shell=True)
@@ -146,26 +146,26 @@ def callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2, mode):
 	if mode == 'SC':
 		if ext1 == '.fq':
 			try:
-				p = subprocess.check_output('bowtie2 -x idx --sensitive -k 1000 -3 '+str(read1size-33)+' -U '+ readfile1+'.cor'+ext1+' -p 100 --no-unal > alignment1.sam', shell=True)
+				p = subprocess.check_output('bowtie2 -x idx --sensitive -k '+str(numhits)+' -3 '+str(read1size-33)+' -U '+ readfile1+'.cor'+ext1+' -p 100 --no-unal > alignment1.sam', shell=True)
 				print >> sys.stderr, time.strftime("%c")+': Alignment1.sam created'
 			except subprocess.CalledProcessError as err:
 				print >> sys.stderr,time.strftime("%c")+': Error in bowtie2-align -> Alignment1'
 				sys.exit(1)
 			try:
-				p = subprocess.check_output('bowtie2 -x idx --sensitive -k 1000 -5 '+str(read2size-33)+' -U '+ readfile2+'.cor'+ext2+' -p 100 --no-unal > alignment2.sam', shell=True)
+				p = subprocess.check_output('bowtie2 -x idx --sensitive -k '+str(numhits)+' -5 '+str(read2size-33)+' -U '+ readfile2+'.cor'+ext2+' -p 100 --no-unal > alignment2.sam', shell=True)
 				print >> sys.stderr, time.strftime("%c")+': Alignment2.sam created'
 			except subprocess.CalledProcessError as err:
 				print >> sys.stderr,time.strftime("%c")+': Error in bowtie2-align -> Alignment2'
 				sys.exit(1)
 		else:
 			try:
-				p = subprocess.check_output('bowtie2 -f -x idx --sensitive -k 1000 -3 '+str(read1size-33)+' -U '+ readfile1+'.cor'+ext1+' -p 100 --no-unal > alignment1.sam', shell=True)
+				p = subprocess.check_output('bowtie2 -f -x idx --sensitive -k '+str(numhits)+' -3 '+str(read1size-33)+' -U '+ readfile1+'.cor'+ext1+' -p 100 --no-unal > alignment1.sam', shell=True)
 				print >> sys.stderr, time.strftime("%c")+': Alignment1.sam created'
 			except subprocess.CalledProcessError as err:
 				print >> sys.stderr,time.strftime("%c")+': Error in bowtie2-align -> Alignment1'
 				sys.exit(1)
 			try:
-				p = subprocess.check_output('bowtie2 -f -x idx --sensitive -k 1000 -5 '+str(read2size-33)+' -U '+ readfile2+'.cor'+ext2+' -p 100 --no-unal > alignment2.sam', shell=True)
+				p = subprocess.check_output('bowtie2 -f -x idx --sensitive -k '+str(numhits)+' -5 '+str(read2size-33)+' -U '+ readfile2+'.cor'+ext2+' -p 100 --no-unal > alignment2.sam', shell=True)
 				print >> sys.stderr, time.strftime("%c")+': Alignment2.sam created'
 			except subprocess.CalledProcessError as err:
 				print >> sys.stderr,time.strftime("%c")+': Error in bowtie2-align -> Alignment2'
@@ -174,26 +174,26 @@ def callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2, mode):
 	elif mode == 'SNC':
 		if ext1 == '.fq':
 			try:
-				p = subprocess.check_output('bowtie2 -x idx --sensitive -k 1000 -3 '+str(read1size-33)+' -U '+ readfile1+ext1+' -p 100 --no-unal > alignment1.sam', shell=True)
+				p = subprocess.check_output('bowtie2 -x idx --sensitive -k '+str(numhits)+' -3 '+str(read1size-33)+' -U '+ readfile1+ext1+' -p 100 --no-unal > alignment1.sam', shell=True)
 				print >> sys.stderr, time.strftime("%c")+': Alignment1.sam created'
 			except subprocess.CalledProcessError as err:
 				print >> sys.stderr,time.strftime("%c")+': Error in bowtie2-align -> Alignment1'
 				sys.exit(1)
 			try:
-				p = subprocess.check_output('bowtie2 -x idx --sensitive -k 1000 -5 '+str(read2size-33)+' -U '+ readfile2+ext2+' -p 100 --no-unal > alignment2.sam', shell=True)
+				p = subprocess.check_output('bowtie2 -x idx --sensitive -k '+str(numhits)+' -5 '+str(read2size-33)+' -U '+ readfile2+ext2+' -p 100 --no-unal > alignment2.sam', shell=True)
 				print >> sys.stderr, time.strftime("%c")+': Alignment2.sam created'
 			except subprocess.CalledProcessError as err:
 				print >> sys.stderr,time.strftime("%c")+': Error in bowtie2-align -> Alignment2'
 				sys.exit(1)
 		else:
 			try:
-				p = subprocess.check_output('bowtie2 -f -x idx --sensitive -k 1000 -3 '+str(read1size-33)+' -U '+ readfile1+ext1+' -p 100 --no-unal > alignment1.sam', shell=True)
+				p = subprocess.check_output('bowtie2 -f -x idx --sensitive -k '+str(numhits)+' -3 '+str(read1size-33)+' -U '+ readfile1+ext1+' -p 100 --no-unal > alignment1.sam', shell=True)
 				print >> sys.stderr, time.strftime("%c")+': Alignment1.sam created'
 			except subprocess.CalledProcessError as err:
 				print >> sys.stderr,time.strftime("%c")+': Error in bowtie2-align -> Alignment1'
 				sys.exit(1)
 			try:
-				p = subprocess.check_output('bowtie2 -f -x idx --sensitive -k 1000 -5 '+str(read2size-33)+' -U '+ readfile2+ext2+' -p 100 --no-unal > alignment2.sam', shell=True)
+				p = subprocess.check_output('bowtie2 -f -x idx --sensitive -k '+str(numhits)+' -5 '+str(read2size-33)+' -U '+ readfile2+ext2+' -p 100 --no-unal > alignment2.sam', shell=True)
 				print >> sys.stderr, time.strftime("%c")+': Alignment2.sam created'
 			except subprocess.CalledProcessError as err:
 				print >> sys.stderr,time.strftime("%c")+': Error in bowtie2-align -> Alignment2'
@@ -208,7 +208,7 @@ def callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2, mode):
         	print >> sys.stderr,time.strftime("%c")+': Error removing index files'
         	sys.exit(1)
 
-def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,database):
+def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,database,numhits):
 	mode = 'M'
 	read1size = 0
 	read2size = 0
@@ -263,7 +263,7 @@ def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,databa
 
 	for key in dir_keys:
 		callBcalmMeta('SORT_'+str(key))
-		callBowtie2Meta(read1size,read2size,'SORT_'+str(key))
+		callBowtie2Meta(read1size,read2size,'SORT_'+str(key),numhits)
 		#read2unitigs1 = kga.read_sam('SORT_'+str(key)+'/alignment1.sam')
 		#read2unitigs2 = kga.read_sam('SORT_'+str(key)+'/alignment2.sam')
 		#read2unitigs = kga.processDictionary(read2unitigs1,read2unitigs2)
@@ -274,7 +274,7 @@ def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,databa
                     print >> sys.stderr,time.strftime("%c")+': Error running KOMB'
 		print >> sys.stderr,time.strftime("%c")+': Finished'
 
-def callSinglegenomePipeline(correction,genomesize,read1,read2):
+def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits):
 	mode = ''
 	read1size = 0
 	read2size = 0
@@ -311,7 +311,7 @@ def callSinglegenomePipeline(correction,genomesize,read1,read2):
 			sys.exit(1)
 
 	callBcalm()
-	callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2,mode)
+	callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2,mode,numhits)
 	#cwd = os.getcwd()
 	#read2unitigs1 = kga.read_sam(cwd+'/alignment1.sam')
 	#read2unitigs2 = kga.read_sam(cwd+'/alignment2.sam')
@@ -338,7 +338,7 @@ def main():
 	parser.add_argument("-l","--level", type=str, help="Classification level for kraken (genus or species)", default='genus')
 	parser.add_argument("-k","--kraken", type=str, help="path to kraken")
 	parser.add_argument("-db","--database", type=str, help="path to kraken database")
-
+        parser.add_argument("-n","--numhits",type=int, help="Bowtie2 maximum hits per read", default = 1000)
 	args = parser.parse_args()
 
 	if args.metagenome and args.single:
@@ -364,11 +364,6 @@ def main():
 	  		print >> sys.stderr, time.strftime("%c")+': Bowtie2 does not exist in PATH (or not installed), exiting process'
 	  		sys.exit(1)
 
-	try:
-	    import igraph
-	except ImportError:
-		raise ImportError("python-igraph not installed in system, please install snap and rerun")
-
 	if args.metagenome:
 		if not args.kraken:
 			print >> sys.stderr, time.strftime("%c")+': Kraken path not given, exiting process'
@@ -383,11 +378,11 @@ def main():
 			print >> sys.stderr, time.strftime("%c")+': Kraken output will be grouped by species'
 		else:
 			print >> sys.stderr, time.strftime("%c")+': Unidentified level (-l) option: [DEFAULT] Kraken will be grouped by genus'
-		callMetagenomePipeline(args.correction,args.genomesize,args.read1,args.read2,args.level.lower(),args.kraken,args.database)
+		callMetagenomePipeline(args.correction,args.genomesize,args.read1,args.read2,args.level.lower(),args.kraken,args.database,args.numhits)
 
 	elif args.single:
 		print >> sys.stderr, time.strftime("%c")+': Starting Kore Genome Analysis on single genome'
-		callSinglegenomePipeline(args.correction,args.genomesize,args.read1,args.read2)
+		callSinglegenomePipeline(args.correction,args.genomesize,args.read1,args.read2,args.numhits)
 	else:
 		print >> sys.stderr, time.strftime("%c")+': Exiting process'
 		sys.exit(1)
