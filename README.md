@@ -43,4 +43,4 @@ optional arguments:
 
 ```
 You can use the C++ igraph script as well if required by tweaking some functions. Please run
-```g++ -O3 test.cpp -Iinclude/igraph/ -Llib/ -ligraph -I/include/boost/ -fopenmp -o test```
+```g++ -O3 komb.cpp -Iinclude/igraph/ -Llib/ -ligraph -I/include/boost/ -fopenmp -o komb```
