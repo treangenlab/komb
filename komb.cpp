@@ -134,8 +134,8 @@ void  readSam(const string filename, BOOST_C::map<string,boost::unordered_set<in
 }
 
 //Create final set unitigs to connect
-BOOST_C::map<int,BOOST_C::vector<int> > processDictionary( BOOST_C::map<string,boost::unordered_set<int> > &u_map1, BOOST_C::map<string,boost::unordered_set<int> > &u_map2){
-	BOOST_C::map<int,BOOST_C::vector<int> > u_map;
+BOOST_C::vector<BOOST_C::vector<int> > processDictionary( BOOST_C::map<string,boost::unordered_set<int> > &u_map1, BOOST_C::map<string,boost::unordered_set<int> > &u_map2){
+	BOOST_C::vector<BOOST_C::vector<int> > u_vec;
 	boost::unordered_set<customset::cset> seen_set;
 	BOOST_C::vector<string> pair_reads;
 	printConsole("Filter single pairs");
@@ -149,7 +149,6 @@ BOOST_C::map<int,BOOST_C::vector<int> > processDictionary( BOOST_C::map<string,b
 	}
 	printConsole("Finished filtering single pairs");
 	//Step 2: Create set of unitigs to connect for each pair in set 1 
-	int count = 0;
 	for(auto &n :  pair_reads){
 		boost::unordered_set<int> temp_set;
 		temp_set.insert(u_map1[n].begin(), u_map1[n].end());
@@ -160,7 +159,7 @@ BOOST_C::map<int,BOOST_C::vector<int> > processDictionary( BOOST_C::map<string,b
 			if(it_set==seen_set.end()){	
 				seen_set.insert(temp_cset);
 				BOOST_C::vector<int> temp(temp_cset.uset.begin(),temp_cset.uset.end());
-				u_map[count++] = temp;
+				u_vec.push_back(temp);
 			}
 		}
 	}
@@ -169,11 +168,11 @@ BOOST_C::map<int,BOOST_C::vector<int> > processDictionary( BOOST_C::map<string,b
 	u_map1.clear();
 	u_map2.clear();
 
-	return u_map;
+	return u_vec;
 }
 
 
-void createGraph(BOOST_C::map<int,BOOST_C::vector<int> > &u_map, int num_unitig, string dir){	
+void createGraph(BOOST_C::vector<BOOST_C::vector<int> > &u_vec, int num_unitig, string dir){	
 	//set of seen pair - done to avoid simplifying graphs and writing more edges to file than needed
 	set<pair<int,int> > edge_set;
 	FILE *f;
@@ -185,8 +184,8 @@ void createGraph(BOOST_C::map<int,BOOST_C::vector<int> > &u_map, int num_unitig,
 	}
 	printConsole("Number of reads: "+to_string(u_map.size()));
 	#pragma omp parallel for
-	for(int i = 0; i<u_map.size();i++){
-		BOOST_C::vector<int> temp = u_map[i];
+	for(int i = 0; i<u_vec.size();i++){
+		BOOST_C::vector<int> temp = u_vec[i];
 		#pragma omp parallel for collapse(2)
 		for(int j = 0; j < temp.size();++j){
 			for(int k = 0;  k < temp.size();++k){
@@ -223,7 +222,7 @@ void createGraph(BOOST_C::map<int,BOOST_C::vector<int> > &u_map, int num_unitig,
 	fclose(f);
 	
 	//clear memory
-        u_map.clear();
+        u_vec.clear();
 	edge_set.clear();	
 }
 
@@ -325,7 +324,7 @@ int main(int argc, char* argv[]){
 	int num_unitig = numUnitig(dir);
 	
 	//prepare read to unitigs dictionary
-	BOOST_C::map<int,BOOST_C::vector<int> > u_map = processDictionary(u_map1,u_map2);
+	BOOST_C::vector<BOOST_C::vector<int> > u_vec  = processDictionary(u_map1,u_map2);
 	
 	//build graph
 	createGraph(u_map, num_unitig, dir);
