@@ -35,8 +35,6 @@ namespace BOOST_C = boost::container;
 //typedef
 typedef boost::char_separator<char> separator_type;
 
-//edges
-boost::unordered_set<pair<int,int> > edges;
 
 namespace  itertools{
 	void combine(boost::unordered_set<int> &uset){
