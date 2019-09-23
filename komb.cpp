@@ -261,6 +261,7 @@ void processGraph(string dir){
 	//PageRank implementation from PRPACK and on undirected graph
 	igraph_vector_t pgvec;
 	igraph_vector_init(&pgvec,1);
+        printConsole("Running PageRank");
 	igraph_pagerank(&graph, IGRAPH_PAGERANK_ALGO_PRPACK, &pgvec, 0, igraph_vss_all(), 0, 0.31, 0, 0);
 	FILE *pgf;
         if(dir == ""){
