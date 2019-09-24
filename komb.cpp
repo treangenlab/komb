@@ -26,7 +26,7 @@ extern "C"
 #include <omp.h>
 #include <utility>
 #include <set>
-#define SIZE 900000
+#include <cstdint>
 using namespace std;
 
 //create aliases
@@ -46,7 +46,7 @@ namespace  itertools{
 				if(i-j > 0){
 					#pragma omp critical
 					{
-						edges.insert(make_pair(i,j));
+						//edges.insert(make_pair(i,j));
 					}
 				}
 			}
@@ -59,7 +59,7 @@ namespace  itertools{
 namespace customset{
 	struct cset{
 
-		boost::unordered_set<int> uset;
+		boost::unordered_set<uint32_t> uset;
 
 	};
 	//overload == to compare boost::unordered_set<int>
@@ -115,7 +115,7 @@ int numUnitig(string dir){
 }
 
 //read SAM file
-void  readSam(const string filename, BOOST_C::map<string,boost::unordered_set<int>  > &u_map){
+void  readSam(const string filename, BOOST_C::map<string,boost::unordered_set<uint32_t>  > &u_map){
 	ifstream inf(filename);
 	string line;
 	while(getline(inf,line)){
@@ -132,8 +132,8 @@ void  readSam(const string filename, BOOST_C::map<string,boost::unordered_set<in
 }
 
 //Create final set unitigs to connect
-BOOST_C::vector<BOOST_C::vector<int> > processDictionary( BOOST_C::map<string,boost::unordered_set<int> > &u_map1, BOOST_C::map<string,boost::unordered_set<int> > &u_map2){
-	BOOST_C::vector<BOOST_C::vector<int> > u_vec;
+BOOST_C::vector<BOOST_C::vector<uint32_t> > processDictionary( BOOST_C::map<string,boost::unordered_set<uint32_t> > &u_map1, BOOST_C::map<string,boost::unordered_set<uint32_t> > &u_map2){
+	BOOST_C::vector<BOOST_C::vector<uint32_t> > u_vec;
 	boost::unordered_set<customset::cset> seen_set;
 	BOOST_C::vector<string> pair_reads;
 	printConsole("Filter single pairs");
@@ -148,7 +148,7 @@ BOOST_C::vector<BOOST_C::vector<int> > processDictionary( BOOST_C::map<string,bo
 	printConsole("Finished filtering single pairs");
 	//Step 2: Create set of unitigs to connect for each pair in set 1 
 	for(auto &n :  pair_reads){
-		boost::unordered_set<int> temp_set;
+		boost::unordered_set<uint32_t> temp_set;
 		temp_set.insert(u_map1[n].begin(), u_map1[n].end());
 		temp_set.insert(u_map2[n].begin(), u_map2[n].end());
 		if(temp_set.size() >= 2){
@@ -156,7 +156,7 @@ BOOST_C::vector<BOOST_C::vector<int> > processDictionary( BOOST_C::map<string,bo
 			auto it_set = seen_set.find(temp_cset);
 			if(it_set==seen_set.end()){	
 				seen_set.insert(temp_cset);
-				BOOST_C::vector<int> temp(temp_cset.uset.begin(),temp_cset.uset.end());
+				BOOST_C::vector<uint32_t> temp(temp_cset.uset.begin(),temp_cset.uset.end());
 				u_vec.push_back(temp);
 			}
 		}
@@ -170,9 +170,9 @@ BOOST_C::vector<BOOST_C::vector<int> > processDictionary( BOOST_C::map<string,bo
 }
 
 
-void createGraph(BOOST_C::vector<BOOST_C::vector<int> > &u_vec, int num_unitig, string dir){	
+void createGraph(BOOST_C::vector<BOOST_C::vector<uint32_t> > &u_vec, uint32_t num_unitig, string dir){	
 	//set of seen pair - done to avoid simplifying graphs and writing more edges to file than needed
-	set<pair<int,int> > edge_set;
+	set<pair<uint32_t,uint32_t> > edge_set;
 	FILE *f;
 	if(dir == ""){
 		f = fopen("edges.txt","w");
@@ -183,7 +183,7 @@ void createGraph(BOOST_C::vector<BOOST_C::vector<int> > &u_vec, int num_unitig, 
 	printConsole("Number of reads: "+to_string(u_vec.size()));
 	#pragma omp parallel for
 	for(int i = 0; i<u_vec.size();i++){
-		BOOST_C::vector<int> temp = u_vec[i];
+		BOOST_C::vector<uint32_t> temp = u_vec[i];
 		#pragma omp parallel for collapse(2)
 		for(int j = 0; j < temp.size();++j){
 			for(int k = 0;  k < temp.size();++k){
@@ -299,8 +299,8 @@ int main(int argc, char* argv[]){
 
 	
 	//create dictionaries to store reads to unitigs mappings
-	BOOST_C::map<string,boost::unordered_set<int> > u_map1;
-	BOOST_C::map<string,boost::unordered_set<int> > u_map2;
+	BOOST_C::map<string,boost::unordered_set<uint32_t> > u_map1;
+	BOOST_C::map<string,boost::unordered_set<uint32_t> > u_map2;
 	
 	//test readSam function
 	printConsole("Begin reading SAM files");
@@ -320,14 +320,21 @@ int main(int argc, char* argv[]){
 	
 	
 	//get unitig  length to create the sparse matrix
-	int num_unitig = numUnitig(dir);
+	uint32_t num_unitig = numUnitig(dir);
 	
 	//prepare read to unitigs dictionary
-	BOOST_C::vector<BOOST_C::vector<int> > u_vec  = processDictionary(u_map1,u_map2);
+	BOOST_C::vector<BOOST_C::vector<uint32_t> > u_vec  = processDictionary(u_map1,u_map2);
 	
+	//clear memory
+	u_map1.clear();
+	u_map2.clear();
+
 	//build graph
 	createGraph(u_vec, num_unitig, dir);
 	
+	//clear memory
+	u_vec.clear();
+
 	//process graph
 	processGraph(dir);	
 	return 0;
