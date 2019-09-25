@@ -35,47 +35,30 @@ namespace BOOST_C = boost::container;
 //typedef
 typedef boost::char_separator<char> separator_type;
 
-
-namespace  itertools{
-	void combine(boost::unordered_set<int> &uset){
-		BOOST_C::vector<int> temp(uset.begin(),uset.end());
-		omp_set_num_threads(omp_get_max_threads());
-		#pragma omp parallel for collapse(2) 
-		for(int i = 0; i< temp.size(); ++i){
-			for(int j = 0; j< temp.size();++j){
-				if(i-j > 0){
-					#pragma omp critical
-					{
-						//edges.insert(make_pair(i,j));
-					}
-				}
-			}
+//Check if unordered set is a subset
+bool is_subset_of(const boost::unordered_set<uint32_t> &a, const boost::unordered_set<uint32_t> &b){
+	if (a.size() > b.size()){
+		return false;
+	}
+	auto const not_found = b.end();
+	for (auto const& element: a){
+		if (b.find(element) == not_found){
+			return false;
 		}
 	}
-}	
+	return true;
+}
 
-
-//Create custom hash for unordered_set<unordered_set<int> >
+//Create custom hash for unordered_set<unordered_set<uint_32> >
 namespace customset{
 	struct cset{
 
 		boost::unordered_set<uint32_t> uset;
 
 	};
-	//overload == to compare boost::unordered_set<int>
+	//overload == to compare boost::unordered_set<uint_32>
 	bool operator==(const cset &cs1, const cset &cs2){
-		if(cs1.uset.size() <= cs2.uset.size()){
-			for(auto &n : cs1.uset){
-				auto it = cs2.uset.find(n);
-				if (it == cs2.uset.end()){
-					return false;
-				}
-			}
-		}
-		else{
-			return false;
-		}
-		return true;
+		return(cs1.uset == cs2.uset);
 	}
 	//create hash value for boost::unordered_set<int> 
 	size_t hash_value(const cset &cs){
@@ -154,7 +137,7 @@ BOOST_C::vector<BOOST_C::vector<uint32_t> > processDictionary( BOOST_C::map<stri
 		if(temp_set.size() >= 2){
 			customset::cset temp_cset = {temp_set};
 			auto it_set = seen_set.find(temp_cset);
-			if(it_set==seen_set.end()){	
+			if(it_set==seen_set.end()){
 				seen_set.insert(temp_cset);
 				BOOST_C::vector<uint32_t> temp(temp_cset.uset.begin(),temp_cset.uset.end());
 				u_vec.push_back(temp);
@@ -162,10 +145,14 @@ BOOST_C::vector<BOOST_C::vector<uint32_t> > processDictionary( BOOST_C::map<stri
 		}
 	}
 	printConsole("Created unitig set");
+	
 	//Step 3: Clear memory
 	u_map1.clear();
 	u_map2.clear();
 
+	//print number of reads to parse	
+	printConsole("Number of reads: "+to_string(u_vec.size()));
+	
 	return u_vec;
 }
 
@@ -180,7 +167,6 @@ void createGraph(BOOST_C::vector<BOOST_C::vector<uint32_t> > &u_vec, uint32_t nu
 	else{
 		f = fopen((dir+"/"+"edges.txt").c_str(),"w");
 	}
-	printConsole("Number of reads: "+to_string(u_vec.size()));
 	#pragma omp parallel for
 	for(int i = 0; i<u_vec.size();i++){
 		BOOST_C::vector<uint32_t> temp = u_vec[i];
@@ -281,7 +267,7 @@ void processGraph(string dir){
 
 //main
 int main(int argc, char* argv[]){
-	
+		
 	//Dir is not empty if runnning in metagenome mode
 	string dir;
 	string alignment1, alignment2;
@@ -323,19 +309,14 @@ int main(int argc, char* argv[]){
 	uint32_t num_unitig = numUnitig(dir);
 	
 	//prepare read to unitigs dictionary
-	BOOST_C::vector<BOOST_C::vector<uint32_t> > u_vec  = processDictionary(u_map1,u_map2);
+	BOOST_C::vector<BOOST_C::vector<uint32_t> > u_vec  = processDictionary(u_map1,u_map2);	
 	
-	//clear memory
-	u_map1.clear();
-	u_map2.clear();
-
+	/*
 	//build graph
-	createGraph(u_vec, num_unitig, dir);
-	
-	//clear memory
-	u_vec.clear();
+	createGraph(u_vec, num_unitig, dir);	
 
 	//process graph
-	processGraph(dir);	
+	processGraph(dir);
+	*/	
 	return 0;
 }
