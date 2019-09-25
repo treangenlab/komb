@@ -18,7 +18,7 @@ class Kraken:
 		self.num_reads = num_reads
 
 	def readNodes(self,file):
-		print >> sys.stderr, time.strftime("%c")+': Reading taxonomy nodes file'
+		print(time.strftime("%c")+': Reading taxonomy nodes file',file=sys.stderr)
 		species_genus = defaultdict(str)
 		with open(file,'r') as rf:
 			for line in rf:
@@ -30,7 +30,7 @@ class Kraken:
 			pickle.dump(species_genus, output)
 
 	def readNames(self,file):
-		print >> sys.stderr, time.strftime("%c")+': Reading taxonomy names file'
+		print(time.strftime("%c")+': Reading taxonomy names file',file=sys.stderr)
 		names = defaultdict(str)
 		with open(file,'r') as rf:
 			for line in rf:
@@ -43,14 +43,14 @@ class Kraken:
 	def runKraken(self):
 		try:
 			p = subprocess.check_output(self.kraken+'/./kraken --preload --db '+ self.database +' --threads 80 --paired '+ self.read1 + ' '+ self.read2+ ' > sequences.kraken ', shell=True)
-			print >> sys.stderr, time.strftime("%c")+': Classification complete'
+			print(time.strftime("%c")+': Classification complete',file=sys.stderr)
 		except subprocess.CalledProcessError as err:
-			print >> sys.stderr,time.strftime("%c")+': Error running kraken'
+			print(time.strftime("%c")+': Error running kraken',file=sys.stderr)
 			sys.exit(1)
-		
+			
 
 	def readKraken(self):
-		print >> sys.stderr, time.strftime("%c")+': Reading Kraken output'
+		print(time.strftime("%c")+': Reading Kraken output',file=sys.stderr)
 		reads_dict = defaultdict(list)
 		s_time = time.time()
 		with open(os.getcwd()+'/sequences.kraken','r') as inpf:
@@ -61,7 +61,7 @@ class Kraken:
 		return reads_dict
 
 	def filterReadLevel(self,tax_dict):
-		print >> sys.stderr, time.strftime("%c")+': Filtering reads according to selected taxonomic level'
+		print(time.strftime("%c")+': Filtering reads according to selected taxonomic level',file=sys.stderr)
 		species_genus = defaultdict(str)
 		names = defaultdict(str)
 		with open('tax_sg_file.pkl', 'rb') as handle:
@@ -77,23 +77,23 @@ class Kraken:
 					del tax_dict[key]
 
 		species_genus.clear()
-		print >> sys.stderr, time.strftime("%c")+': Removing taxa with less than '+ str(round(0.005*self.num_reads))+' reads'
+		print(time.strftime("%c")+': Removing taxa with less than '+ str(round(0.005*self.num_reads))+' reads',file=sys.stderr)
 		for key in list(tax_dict):
 			if len(tax_dict[key]) < 0.005*self.num_reads:
 				del tax_dict[key]
 
 		if len(tax_dict) == 0:
-			print >> sys.stderr, time.strftime("%c")+': Kraken classification failed'
+			print(time.strftime("%c")+': Kraken classification failed',file=sys.stderr)
 			sys.exit(1)
 
-		print >> sys.stderr, time.strftime("%c")+': Creating file with names of classified taxa in the sample'
+		print(time.strftime("%c")+': Creating file with names of classified taxa in the sample',file=sys.stderr)
 		with open('tax_names_file.pkl', 'rb') as handle:
 			names = pickle.load(handle)
 		with open('Tax_names.txt','w+') as wf:
 			for k in tax_dict:
 				wf.write(str(k)+'\t'+names[k]+'\n')
 
-		print >> sys.stderr, time.strftime("%c")+': Creating directory for each taxon'
+		print(time.strftime("%c")+': Creating directory for each taxon',file=sys.stderr)
 		for k in tax_dict:
 			if not os.path.exists('SORT_'+k):
 				os.mkdir('SORT_'+k)
@@ -101,11 +101,10 @@ class Kraken:
 		return tax_dict
 
 	def separateReads(self,filtered_dict):
-
 		if '.fq' in self.read1:
 			read1_dict = defaultdict(str)
 			read2_dict = defaultdict(str)
-			print >> sys.stderr, time.strftime("%c")+': Sorting reads into different directories'
+			print(time.strftime("%c")+': Sorting reads into different directories',file=sys.stderr)
 			with open(self.read1,'r') as handle1:
 				count = 0
 				key  = ''
@@ -122,7 +121,7 @@ class Kraken:
 							flag = False
 						else:
 							count+=1
-			print >> sys.stderr, time.strftime("%c")+': Prepared  dictionary 1'
+			print(time.strftime("%c")+': Prepared  dictionary 1',file=sys.stderr)
 			writ_count = 0
 			for k in filtered_dict:
 				with open('SORT_'+str(k)+'/reads1.fa','w+') as wf1:
@@ -130,10 +129,10 @@ class Kraken:
 						if r_id in read1_dict:
 							wf1.writelines(['>'+r_id+'\n',read1_dict[r_id]])
 				writ_count+=1
-				print >> sys.stderr, time.strftime("%c")+': Finished processing '+str(writ_count)+'/'+str(len(filtered_dict))
+				print(time.strftime("%c")+': Finished processing '+str(writ_count)+'/'+str(len(filtered_dict)),file=sys.stderr)
 
 			read1_dict.clear()
-			print >> sys.stderr, time.strftime("%c")+': Cleared memory'
+			print(time.strftime("%c")+': Cleared memory',file=sys.stderr)
 
 			with open(self.read2,'r') as handle2:
 				count = 0
@@ -151,7 +150,7 @@ class Kraken:
 							flag = False
 						else:
 							count+=1
-			print >> sys.stderr, time.strftime("%c")+': Prepared  dictionary 2'
+			print(time.strftime("%c")+': Prepared  dictionary 2',file=sys.stderr)
 			writ_count = 0
 			for k in filtered_dict:
 				with open('SORT_'+str(k)+'/reads2.fa','w+') as wf1:
@@ -159,13 +158,13 @@ class Kraken:
 						if r_id in read1_dict:
 							wf1.writelines(['>'+r_id+'\n',read1_dict[r_id]])
 				writ_count+=1
-				print >> sys.stderr, time.strftime("%c")+': Finished processing '+str(writ_count)+'/'+str(len(filtered_dict))
-			print >> sys.stderr, time.strftime("%c")+': Finished read sorting'
+				print(time.strftime("%c")+': Finished processing '+str(writ_count)+'/'+str(len(filtered_dict)),file=sys.stderr)
+			print(time.strftime("%c")+': Finished read sorting',file=sys.stderr)
 		
 		else:
 			read1_dict = defaultdict(str)
 			read2_dict = defaultdict(str)
-			print >> sys.stderr, time.strftime("%c")+': Sorting reads into different directories'
+			print(time.strftime("%c")+': Sorting reads into different directories',file=sys.stderr)
 			with open(self.read1,'r') as handle1:
 				count = 0
 				key  = ''
@@ -176,7 +175,7 @@ class Kraken:
 					else:
 						read1_dict[key] = line
 						count+=1
-			print >> sys.stderr, time.strftime("%c")+': Prepared  dictionary 1'
+			print(time.strftime("%c")+': Prepared  dictionary 1',file=sys.stderr)
 			writ_count = 0
 			for k in filtered_dict:
 				with open('SORT_'+str(k)+'/reads1.fa','w+') as wf1:
@@ -184,10 +183,10 @@ class Kraken:
 						if r_id in read1_dict:
 							wf1.writelines(['>'+r_id+'\n',read1_dict[r_id]])
 				writ_count+=1
-				print >> sys.stderr, time.strftime("%c")+': Finished processing '+str(writ_count)+'/'+str(len(filtered_dict))
+				print(time.strftime("%c")+': Finished processing '+str(writ_count)+'/'+str(len(filtered_dict)),file=sys.stderr)
 
 			read1_dict.clear()
-			print >> sys.stderr, time.strftime("%c")+': Cleared memory'
+			print(time.strftime("%c")+': Cleared memory',file=sys.stderr)
 
 			with open(self.read2,'r') as handle2:
 				count = 0
@@ -199,7 +198,7 @@ class Kraken:
 					else:
 						read1_dict[key] = line
 						count+=1
-			print >> sys.stderr, time.strftime("%c")+': Prepared  dictionary 2'
+			print(time.strftime("%c")+': Prepared  dictionary 2',file=sys.stderr)
 			writ_count = 0
 			for k in filtered_dict:
 				with open('SORT_'+str(k)+'/reads2.fa','w+') as wf1:
@@ -207,23 +206,23 @@ class Kraken:
 						if r_id in read1_dict:
 							wf1.writelines(['>'+r_id+'\n',read1_dict[r_id]])
 				writ_count+=1
-				print >> sys.stderr, time.strftime("%c")+': Finished processing '+str(writ_count)+'/'+str(len(filtered_dict))
-			print >> sys.stderr, time.strftime("%c")+': Finished read sorting'
+				print(time.strftime("%c")+': Finished processing '+str(writ_count)+'/'+str(len(filtered_dict)),file=sys.stderr)
+			print(time.strftime("%c")+': Finished read sorting',file=sys.stderr)
 		return filtered_dict.keys()
 
 
 	def checkLength(self, filtered_dict):
 		lengths = []
 		for key in filtered_dict:
-			lengths.append(len(filtered_dict[key]))
-		print max(lengths)
-		print min(lengths)
-		print sum(lengths)/len(lengths)
+				lengths.append(len(filtered_dict[key]))
+		print(max(lengths))
+		print(min(lengths))
+		print(sum(lengths)/len(lengths))
 
 
 def main():
 	k_obj= Kraken('SRR606249_1.cor.fq','SRR606249_2.cor.fq','genus')
-	print >> sys.stderr, time.strftime("%c")+': Started reading taxonomy files'
+	print(time.strftime("%c")+': Started reading taxonomy files',file=sys.stderr)
 	k_obj.readNodes('nodes.dmp')
 	k_obj.readNames('names.dmp')
 	temp_dict= k_obj.readKraken()
