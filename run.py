@@ -258,7 +258,7 @@ def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,databa
 		#G = kga.graphSecond(read2unitigs,'/SORT_'+str(key))
 		try:
 			p = subprocess.check_output('./komb '+'SORT_'+str(key))
-			print(p.strip('\n'))
+			print(p.decode('unicode-escape').strip('\n'))
 		except subprocess.CalledProcessErroe as err:
 			print(time.strftime("%c")+': Error running KOMB',file=sys.stderr)
 		print(sys.stderr,time.strftime("%c")+': Finished',file=sys.stderr)
@@ -308,7 +308,7 @@ def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits):
 	#G = kga.graphSecond(read2unitigs)
 	try:
 		p = subprocess.check_output('./komb')
-		print(p.strip('\n'))
+		print(p.decode('unicode-escape').strip('\n'))
 	except subprocess.CalledProcessError as err:
 		print(time.strftime("%c")+': Error running KOMB',file=sys.stderr)
 	print(time.strftime("%c")+': Finished',file=sys.stderr)
