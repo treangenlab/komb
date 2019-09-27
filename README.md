@@ -14,7 +14,7 @@ KOMB has two major dependencies for Core genome analysis:
 ```
 **Usage:**
 ``
-python run.py [Flags]
+python3 run.py [Flags]
 ``
 The description of various flags is given below. Please note that while running with **-m** it is necessary to specifiy both **-k** and **-db** i.e path to kraken and the database to use for taxonomonic classification
 ```
