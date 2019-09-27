@@ -190,12 +190,12 @@ def callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2,mode,numhits):
 	else:
 		print(time.strftime("%c")+': Mode unrecognized, exiting process',file=sys.stderr)
 		sys.exit(1)
-		try:
-			p = subprocess.check_output('rm -rf idx* ', shell=True)
-			print(time.strftime("%c")+': Removed index files',file=sys.stderr)
-		except subprocess.CalledProcessError as err:
-			print(time.strftime("%c")+': Error removing index files',file=sys.stderr)
-			sys.exit(1)
+	try:
+		p = subprocess.check_output('rm -rf idx* ', shell=True)
+		print(time.strftime("%c")+': Removed index files',file=sys.stderr)
+	except subprocess.CalledProcessError as err:
+		print(time.strftime("%c")+': Error removing index files',file=sys.stderr)
+		sys.exit(1)
 
 def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,database,numhits):
 	mode = 'M'
