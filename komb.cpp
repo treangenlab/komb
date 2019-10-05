@@ -311,12 +311,12 @@ int main(int argc, char* argv[]){
 	//prepare read to unitigs dictionary
 	BOOST_C::vector<BOOST_C::vector<uint32_t> > u_vec  = processDictionary(u_map1,u_map2);	
 	
-	/*
+	
 	//build graph
 	createGraph(u_vec, num_unitig, dir);	
 
 	//process graph
 	processGraph(dir);
-	*/	
+		
 	return 0;
 }
