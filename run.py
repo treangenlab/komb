@@ -35,7 +35,7 @@ def callLighter(genomesize,read1,read2,concat=True):
 		sys.exit(1)
 	try:
 		p = subprocess.check_output('lighter -K ' + " 32 " +str(genomesize) + " -t 100 "+ "-r "+ read2 + " -maxcor 20 -noQual", shell=True)
-		print(sys.stderr,time.strftime("%c")+': Finished Read 2',file=sys.stderr)
+		print(time.strftime("%c")+': Finished Read 2',file=sys.stderr)
 	except subprocess.CalledProcessError as err:
 		print(time.strftime("%c")+': Error correcting read 2',file=sys.stderr)
 		sys.exit(1)
