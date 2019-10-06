@@ -126,9 +126,31 @@ def callBcalm(kmer):
 		print(time.strftime("%c")+': Error deleting temp .h5 file',file=sys.stderr)
 		sys.exit(1)
 
+def callAbyss(readfile1,readfile2,ext1,ext2,kmer):
+	try:
+		p = subprocess.check_output('abyss-pe name=temp k='+str(kmer)+' in=\''+
+									readfile1+ext1+' '+readfile2+ext2+'\'', shell = True)
+		print(time.strftime("%c")+': Unitigs created',file=sys.stderr)
+	except subprocess.CalledProcessError as err:
+		print(time.strftime("%c")+': Error creating unitigs',file=sys.stderr)
+		sys.exit(1)
+
+	try:
+		p = subprocess.check_output('cp temp-unitigs.fa final-unitigs.fa', shell = True)
+	except subprocess.CalledProcessError as err:
+		print(time.strftime("%c")+': Could not copy abyss output to final-unitigs',file=sys.stderr)
+		sys.exit(1)
+
+	try:
+		p = subprocess.check_output('rm -rf temp-* coverage.hist', shell = True)
+		print(time.strftime("%c")+': Temp abyss files deleted',file=sys.stderr)
+	except subprocess.CalledProcessError as err:
+		print(time.strftime("%c")+': Error deleting temp abyss files',file=sys.stderr)
+		sys.exit(1)
+
 def callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2,mode,numhits,kmer):
 	try:
-		p = subprocess.check_output('bowtie2-build final.unitigs.fa idx', shell=True)
+		p = subprocess.check_output('bowtie2-build final-unitigs.fa idx', shell=True)
 		print(time.strftime("%c")+': Bowtie2 index created',file=sys.stderr)
 	except subprocess.CalledProcessError as err:
 		print(time.strftime("%c")+': Error creating index',file=sys.stderr)
@@ -288,18 +310,18 @@ def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer):
 		sys.exit(1)
 
 	if correction:
-		callLighter(genomesize,read1,read2,True)
+		callLighter(genomesize,read1,read2,False)
 		mode = 'SC'
 	else:
 		try:
-			p = subprocess.check_output('cat  '+ read1 + ' ' + read2+ ' > final.fa ', shell=True)
-			print(time.strftime("%c")+': Concatenated reads for Bcalm',file=sys.stderr)
+			# p = subprocess.check_output('cat  '+ read1 + ' ' + read2+ ' > final.fa ', shell=True)
+			# print(time.strftime("%c")+': Concatenated reads for Bcalm',file=sys.stderr)
 			mode = 'SNC'
 		except subprocess.CalledProcessError as err:
-			print(time.strftime("%c")+': Error concatenating reads',file=sys.stderr)
+			# print(time.strftime("%c")+': Error concatenating reads',file=sys.stderr)
 			sys.exit(1)
 
-	callBcalm(kmer)
+	callAbyss(readfile1,readfile2,ext1,ext2,kmer)
 	callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2,mode,numhits,kmer)
 	#cwd = os.getcwd()
 	#read2unitigs1 = kga.read_sam(cwd+'/alignment1.sam')
