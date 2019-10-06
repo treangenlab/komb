@@ -158,26 +158,26 @@ def callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2,mode,numhits,k
 	if mode == 'SC':
 		if ext1 == '.fq':
 			try:
-				p = subprocess.check_output('bowtie2 -x idx --sensitive -k '+str(numhits)+' -3 '+str(read1size-kmer)+' -U '+ readfile1+'.cor'+ext1+' -p 100 --no-unal > alignment1.sam', shell=True)
+				p = subprocess.check_output('bowtie2 -x idx --sensitive -k '+str(numhits)+' -3 '+str(read1size-kmer)+' -U '+ readfile1+ext1+' -p 100 --no-unal > alignment1.sam', shell=True)
 				print(time.strftime("%c")+': Alignment1.sam created',file=sys.stderr)
 			except subprocess.CalledProcessError as err:
 				print(time.strftime("%c")+': Error in bowtie2-align -> Alignment1',file=sys.stderr)
 				sys.exit(1)
 			try:
-				p = subprocess.check_output('bowtie2 -x idx --sensitive -k '+str(numhits)+' -5 '+str(read2size-kmer)+' -U '+ readfile2+'.cor'+ext2+' -p 100 --no-unal > alignment2.sam', shell=True)
+				p = subprocess.check_output('bowtie2 -x idx --sensitive -k '+str(numhits)+' -5 '+str(read2size-kmer)+' -U '+ readfile2+ext2+' -p 100 --no-unal > alignment2.sam', shell=True)
 				print(time.strftime("%c")+': Alignment2.sam created',file=sys.stderr)
 			except subprocess.CalledProcessError as err:
 				print(time.strftime("%c")+': Error in bowtie2-align -> Alignment2',file=sys.stderr)
 				sys.exit(1)
 		else:
 			try:
-				p = subprocess.check_output('bowtie2 -f -x idx --sensitive -k '+str(numhits)+' -3 '+str(read1size-kmer)+' -U '+ readfile1+'.cor'+ext1+' -p 100 --no-unal > alignment1.sam', shell=True)
+				p = subprocess.check_output('bowtie2 -f -x idx --sensitive -k '+str(numhits)+' -3 '+str(read1size-kmer)+' -U '+ readfile1+ext1+' -p 100 --no-unal > alignment1.sam', shell=True)
 				print(time.strftime("%c")+': Alignment1.sam created',file=sys.stderr)
 			except subprocess.CalledProcessError as err:
 				print(time.strftime("%c")+': Error in bowtie2-align -> Alignment1',file=sys.stderr)
 				sys.exit(1)
 			try:
-				p = subprocess.check_output('bowtie2 -f -x idx --sensitive -k '+str(numhits)+' -5 '+str(read2size-kmer)+' -U '+ readfile2+'.cor'+ext2+' -p 100 --no-unal > alignment2.sam', shell=True)
+				p = subprocess.check_output('bowtie2 -f -x idx --sensitive -k '+str(numhits)+' -5 '+str(read2size-kmer)+' -U '+ readfile2+ext2+' -p 100 --no-unal > alignment2.sam', shell=True)
 				print(time.strftime("%c")+': Alignment2.sam created',file=sys.stderr)
 			except subprocess.CalledProcessError as err:
 				print(time.strftime("%c")+': Error in bowtie2-align -> Alignment2',file=sys.stderr)
@@ -311,6 +311,8 @@ def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer):
 
 	if correction:
 		callLighter(genomesize,read1,read2,False)
+		ext1 = '.cor' + ext1
+		ext2 = '.cor' + ext2
 		mode = 'SC'
 	else:
 		try:
