@@ -156,7 +156,7 @@ def callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2,mode,numhits,k
 		print(time.strftime("%c")+': Error creating index',file=sys.stderr)
 		sys.exit(1)
 	if mode == 'SC':
-		if ext1 == '.fq':
+		if ext1 == '.cor.fq':
 			try:
 				p = subprocess.check_output('bowtie2 -x idx --sensitive -k '+str(numhits)+' -3 '+str(read1size-kmer)+' -U '+ readfile1+ext1+' -p 100 --no-unal > alignment1.sam', shell=True)
 				print(time.strftime("%c")+': Alignment1.sam created',file=sys.stderr)
