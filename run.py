@@ -128,7 +128,7 @@ def callBcalm(kmer):
 
 def callAbyss(readfile1,readfile2,ext1,ext2,kmer):
 	try:
-		p = subprocess.check_output('abyss-pe name=temp k='+str(kmer)+' in=\''+
+		p = subprocess.check_output('abyss-pe np=32 name=temp k='+str(kmer)+' in=\''+
 									readfile1+ext1+' '+readfile2+ext2+'\' unitigs', shell = True)
 		print(time.strftime("%c")+': Unitigs created',file=sys.stderr)
 	except subprocess.CalledProcessError as err:
