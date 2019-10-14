@@ -47,6 +47,28 @@ def callLighter(genomesize,read1,read2,concat=True):
 			print(time.strftime("%c")+': Error concatenating reads',file=sys.stderr)
 			sys.exit(1)
 
+def callAbyssMeta(folder,kmer):	
+	try:
+		p = subprocess.check_output('abyss-pe np=16 name=temp k='+str(kmer)+' in=\''+
+									folder+'/reads1.fa'+' '+folder+'/reads2.fa'+'\' unitigs', shell = True)
+		print(time.strftime("%c")+': Unitigs created',file=sys.stderr)
+	except subprocess.CalledProcessError as err:
+		print(time.strftime("%c")+': Error creating unitigs',file=sys.stderr)
+		sys.exit(1)
+
+	try:
+		p = subprocess.check_output('cp temp-unitigs.fa '+folder+'/final-unitigs.fa', shell = True)
+	except subprocess.CalledProcessError as err:
+		print(time.strftime("%c")+': Could not copy abyss output to final-unitigs',file=sys.stderr)
+		sys.exit(1)
+
+	try:
+		p = subprocess.check_output('rm -rf temp-* coverage.hist', shell = True)
+		print(time.strftime("%c")+': Temp abyss files deleted',file=sys.stderr)
+	except subprocess.CalledProcessError as err:
+		print(time.strftime("%c")+': Error deleting temp abyss files',file=sys.stderr)
+		sys.exit(1)
+
 def callBcalmMeta(folder,kmer):
 	try:
 		p = subprocess.check_output('cat '+folder+'/*.fa > '+ folder+'/final.fa ', shell=True)
