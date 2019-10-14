@@ -47,6 +47,34 @@ def callLighter(genomesize,read1,read2,concat=True):
 			print(time.strftime("%c")+': Error concatenating reads',file=sys.stderr)
 			sys.exit(1)
 
+def callSPAdesMeta(folder,kmer):
+	print(time.strftime("%c")+': Starting SPAdes graph builder',file=sys.stderr)
+	with open('input.yaml','w+') as wf:
+		wf.write('[\n')
+		wf.write('\t{\n')
+		wf.write('\torientation: \"fr\",\n')
+		wf.write('\ttype: \"paired-end\",\n')
+		wf.write('\tright reads: [\n')
+		wf.write('\t \"'+folder+'/reads1.fq'+'\",\n')
+		wf.write('\t],\n')
+		wf.write('\tleft reads: [\n')
+		wf.write('\t \"'+folder+'/reads2.fq'+'\",\n')
+		wf.write('\t],\n')
+		wf.write('\t}\n')
+		wf.write(']')
+	try:
+		p = subprocess.check_output('./spades-gbuilder input.yaml output.gfa -k '+str(kmer)+' -t 50 -gfa', shell=True)
+		print(time.strftime("%c")+': GFA file created',file=sys.stderr)
+	except subprocess.CalledProcessError as err:
+		print(time.strftime("%c")+': Error creating GFA file',file=sys.stderr)
+		sys.exit(1)
+	try:
+		p = subprocess.check_output('cp output.gfa '+folder+'/', shell=True)
+		print(time.strftime("%c")+': GFA file copied',file=sys.stderr)
+	except subprocess.CalledProcessError as err:
+		print(time.strftime("%c")+': Error copying GFA file',file=sys.stderr)
+		sys.exit(1)
+
 def callAbyssMeta(folder,kmer):	
 	try:
 		p = subprocess.check_output('abyss-pe np=16 name=temp k='+str(kmer)+' in=\''+
@@ -127,6 +155,29 @@ def callBowtie2Meta(read1size,read2size,folder,numhits,kmer):
 	except subprocess.CalledProcessError as err:
 		print(time.strftime("%c")+': Error removing index files',file=sys.stderr)
 		sys.exit(1)
+
+def callSPAdes(readfile1,readfile2,ext1,ext2,kmer):
+	print(time.strftime("%c")+': Starting SPAdes graph builder',file=sys.stderr)
+	with open('input.yaml','w+') as wf:
+		wf.write('[\n')
+		wf.write('\t{\n')
+		wf.write('\torientation: \"fr\",\n')
+		wf.write('\ttype: \"paired-end\",\n')
+		wf.write('\tright reads: [\n')
+		wf.write('\t \"'+readfile1+ext1+'\",\n')
+		wf.write('\t],\n')
+		wf.write('\tleft reads: [\n')
+		wf.write('\t \"'+readfile2+ext2+'\",\n')
+		wf.write('\t],\n')
+		wf.write('\t}\n')
+		wf.write(']')
+	try:
+		p = subprocess.check_output('./spades-gbuilder input.yaml output.gfa -k '+str(kmer)+' -t 50 -gfa', shell=True)
+		print(time.strftime("%c")+': GFA file created',file=sys.stderr)
+	except subprocess.CalledProcessError as err:
+		print(time.strftime("%c")+': Error creating GFA file',file=sys.stderr)
+		sys.exit(1)	
+
 
 def callBcalm(kmer):
 	try:
@@ -374,6 +425,7 @@ def main():
 	parser.add_argument("-db","--database", type=str, help="path to kraken database")
 	parser.add_argument("-n","--numhits",type=int, help="Bowtie2 maximum hits per read", default = 1000)
 	parser.add_argument("-e","--kmer", type=int, help="Set kmer size (less than equal to 100)", default = 33)
+	parser.add_argument("-f","--gfa", help = "Build  from SPAdes GFA graph", action  = 'store_true')
 	args = parser.parse_args()
 
 	if args.kmer > 100:
