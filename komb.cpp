@@ -267,10 +267,8 @@ void processGraph(string dir){
 
 //main
 int main(int argc, char* argv[]){
-		
 	//Dir is not empty if runnning in metagenome mode
-	string dir;
-	string alignment1, alignment2;
+	string dir, alignment1, alignment2;
 	if (argc == 2){
 		dir = argv[1];
 		alignment1  = dir+"/"+"alignment1.sam";
