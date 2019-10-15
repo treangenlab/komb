@@ -356,7 +356,7 @@ def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,databa
 			print(p.decode('unicode-escape').strip('\n'))
 		except subprocess.CalledProcessErroe as err:
 			print(time.strftime("%c")+': Error running KOMB',file=sys.stderr)
-		print(sys.stderr,time.strftime("%c")+': Finished',file=sys.stderr)
+		print(time.strftime("%c")+': Finished',file=sys.stderr)
 
 def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer):
 	mode = ''
