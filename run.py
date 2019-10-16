@@ -352,7 +352,7 @@ def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,databa
 			callSPAdesMeta('SORT_'+str(key),kmer)
 			print(time.strftime("%c")+': Running Spades and creating GFA file',file=sys.stderr)
 			try:
-				p = subprocess.check_output('./komb -g -r '+str(min_readsize)+' -d '+'SORT_'+str(key))
+				p = subprocess.check_output('./komb -g -r '+str(min_readsize)+' -d '+'SORT_'+str(key), shell = True)
 				print(p.decode('unicode-escape').strip('\n'))
 				print(sys.stderr,time.strftime("%c")+': Finished',file=sys.stderr)
 			except subprocess.CalledProcessErroe as err:
@@ -369,7 +369,7 @@ def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,databa
 		#read2unitigs = kga.processDictionary(read2unitigs1,read2unitigs2)
 		#G = kga.graphSecond(read2unitigs,'/SORT_'+str(key))
 		try:
-			p = subprocess.check_output('./komb -d '+'SORT_'+str(key))
+			p = subprocess.check_output('./komb -d '+'SORT_'+str(key),shell = True)
 			print(p.decode('unicode-escape').strip('\n'))
 		except subprocess.CalledProcessErroe as err:
 			print(time.strftime("%c")+': Error running KOMB',file=sys.stderr)
@@ -420,7 +420,7 @@ def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer,gfa)
 		callSPAdes(readfile1,readfile2,ext1,ext2,kmer)
 		print(time.strftime("%c")+': Running Spades and creating GFA file',file=sys.stderr)
 		try:
-			p = subprocess.check_output('./komb -g -r '+str(min_readsize))
+			p = subprocess.check_output('./komb -g -r '+str(min_readsize), shell = True)
 			print(p.decode('unicode-escape').strip('\n'))
 			print(time.strftime("%c")+': Finished',file=sys.stderr)
 			sys.exit(1)
@@ -438,7 +438,7 @@ def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer,gfa)
 	#read2unitigs = kga.processDictionary(read2unitigs1,read2unitigs2)
 	#G = kga.graphSecond(read2unitigs)
 	try:
-		p = subprocess.check_output('./komb')
+		p = subprocess.check_output('./komb', shell = True)
 		print(p.decode('unicode-escape').strip('\n'))
 	except subprocess.CalledProcessError as err:
 		print(time.strftime("%c")+': Error running KOMB',file=sys.stderr)
