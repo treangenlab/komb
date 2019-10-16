@@ -134,6 +134,7 @@ string GFALink::getSecondUnitigOrientation(){
 void processGFA(const string dir, int readLength){
 	BOOST_C::vector<GFALink> link;
 	BOOST_C::map<uint32_t, uint32_t> contig_ids;
+	BOOST_C::map<uint32_t,uint32_t>::iterator it1, it2;
 	string filename;
 	if(dir == ""){
 		filename = "output.gfa";
@@ -151,12 +152,19 @@ void processGFA(const string dir, int readLength){
 			tokens.push_back(*it);
 		}
 		if(tokens[0] == "S"){
-			contig_ids[stoi(tokens[1])]  = id;
-			id++;
+			uint32_t unitig_length = tokens[2].length();
+			if(unitig_length >= readLength){
+				contig_ids[stoi(tokens[1])]  = id;
+				id++;
+			}
 		}
 		if(tokens[0] == "L"){
-			GFALink gl(contig_ids[stoi(tokens[1])],contig_ids[stoi(tokens[3])],tokens[2],tokens[4]);
-			link.push_back(gl);
+			it1 = contig_ids.find(stoi(tokens[1]));
+			it2 = contig_ids.find(stoi(tokens[3]));
+			if (it1 != contig_ids.end() && it2 != contig_ids.end()){
+				GFALink gl(contig_ids[stoi(tokens[1])],contig_ids[stoi(tokens[3])],tokens[2],tokens[4]);
+				link.push_back(gl);
+			}
 		}
 	}
 	contig_ids.clear();	
