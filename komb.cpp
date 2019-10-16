@@ -159,7 +159,7 @@ void processGFA(const string dir, int readLength){
 			link.push_back(gl);
 		}
 	}
-	
+	contig_ids.clear();	
 	//Make igraph from links
 	igraph_t graph;
 	igraph_vector_t edges;
