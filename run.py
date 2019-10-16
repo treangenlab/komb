@@ -55,10 +55,10 @@ def callSPAdesMeta(folder,kmer):
 		wf.write('\torientation: \"fr\",\n')
 		wf.write('\ttype: \"paired-end\",\n')
 		wf.write('\tright reads: [\n')
-		wf.write('\t \"'+folder+'/reads1.fq'+'\",\n')
+		wf.write('\t \"'+folder+'/reads1.fa'+'\",\n')
 		wf.write('\t],\n')
 		wf.write('\tleft reads: [\n')
-		wf.write('\t \"'+folder+'/reads2.fq'+'\",\n')
+		wf.write('\t \"'+folder+'/reads2.fa'+'\",\n')
 		wf.write('\t],\n')
 		wf.write('\t}\n')
 		wf.write(']')
@@ -292,7 +292,7 @@ def callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2,mode,numhits,k
 		print(time.strftime("%c")+': Error removing index files',file=sys.stderr)
 		sys.exit(1)
 
-def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,database,numhits,kmer):
+def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,database,numhits,kmer,gfa):
 	mode = 'M'
 	read1size = 0
 	read2size = 0
@@ -311,6 +311,9 @@ def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,databa
 	read2size = int(getReadLength(read2))
 	readfile2 = read2.split('/')[-1][:-3]
 	ext2 = read2.split('/')[-1][-3:]	
+
+	min_readsize = min(read1size,read2size)
+
 	try:
 		assert(ext1 == ext2)
 	except AssertionError as ar:
@@ -344,21 +347,36 @@ def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,databa
 	filtered_dict = k_obj.filterReadLevel(temp_dict)
 	dir_keys = k_obj.separateReads(filtered_dict)
 
+	if gfa:
+		for key in dir_keys:
+			callSPAdesMeta('SORT_'+str(key),kmer)
+			print(time.strftime("%c")+': Running Spades and creating GFA file',file=sys.stderr)
+			try:
+				p = subprocess.check_output('./komb -g -r '+str(min_readsize)+' -d '+'SORT_'+str(key))
+				print(p.decode('unicode-escape').strip('\n'))
+				print(sys.stderr,time.strftime("%c")+': Finished',file=sys.stderr)
+			except subprocess.CalledProcessErroe as err:
+				print(time.strftime("%c")+': Error running KOMB',file=sys.stderr)
+				sys.exit(1)
+		sys.exit(1)
+			
 	for key in dir_keys:
-		callBcalmMeta('SORT_'+str(key),kmer)
+		callAbyssMeta('SORT_'+str(key),kmer)
+
 		callBowtie2Meta(read1size,read2size,'SORT_'+str(key),numhits,kmer)
 		#read2unitigs1 = kga.read_sam('SORT_'+str(key)+'/alignment1.sam')
 		#read2unitigs2 = kga.read_sam('SORT_'+str(key)+'/alignment2.sam')
 		#read2unitigs = kga.processDictionary(read2unitigs1,read2unitigs2)
 		#G = kga.graphSecond(read2unitigs,'/SORT_'+str(key))
 		try:
-			p = subprocess.check_output('./komb '+'SORT_'+str(key))
+			p = subprocess.check_output('./komb -d '+'SORT_'+str(key))
 			print(p.decode('unicode-escape').strip('\n'))
 		except subprocess.CalledProcessErroe as err:
 			print(time.strftime("%c")+': Error running KOMB',file=sys.stderr)
-		print(time.strftime("%c")+': Finished',file=sys.stderr)
+			sys.exit(1)
+		print(sys.stderr,time.strftime("%c")+': Finished',file=sys.stderr)
 
-def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer):
+def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer,gfa):
 	mode = ''
 	read1size = 0
 	read2size = 0
@@ -375,6 +393,8 @@ def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer):
 	read2size = int(getReadLength(read2))
 	readfile2 = read2.split('/')[-1][:-3]
 	ext2 = read2.split('/')[-1][-3:]
+
+	min_readsize = min(read1size,read2size)
 
 	try:
 		assert(ext1 == ext2)
@@ -395,6 +415,20 @@ def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer):
 		except subprocess.CalledProcessError as err:
 			# print(time.strftime("%c")+': Error concatenating reads',file=sys.stderr)
 			sys.exit(1)
+	
+	if gfa:
+		callSPAdes(readfile1,readfile2,ext1,ext2,kmer)
+		print(time.strftime("%c")+': Running Spades and creating GFA file',file=sys.stderr)
+		try:
+			p = subprocess.check_output('./komb -g -r '+str(min_readsize))
+			print(p.decode('unicode-escape').strip('\n'))
+			print(time.strftime("%c")+': Finished',file=sys.stderr)
+			sys.exit(1)
+		except subprocess.CalledProcessError as err:
+			print(time.strftime("%c")+': Error running KOMB',file=sys.stderr)
+			sys.exit(1)
+
+
 
 	callAbyss(readfile1,readfile2,ext1,ext2,kmer)
 	callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2,mode,numhits,kmer)
@@ -408,6 +442,7 @@ def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer):
 		print(p.decode('unicode-escape').strip('\n'))
 	except subprocess.CalledProcessError as err:
 		print(time.strftime("%c")+': Error running KOMB',file=sys.stderr)
+		sys.exit(1)
 	print(time.strftime("%c")+': Finished',file=sys.stderr)
 
 
@@ -469,11 +504,11 @@ def main():
 			print(time.strftime("%c")+': Kraken output will be grouped by species',file=sys.stderr)
 		else:
 			print(time.strftime("%c")+': Unidentified level (-l) option: [DEFAULT] Kraken will be grouped by genus',file=sys.stderr)
-		callMetagenomePipeline(args.correction,args.genomesize,args.read1,args.read2,args.level.lower(),args.kraken,args.database,args.numhits,args.kmer)
+		callMetagenomePipeline(args.correction,args.genomesize,args.read1,args.read2,args.level.lower(),args.kraken,args.database,args.numhits,args.kmer, args.gfa)
 
 	elif args.single:
 		print(time.strftime("%c")+': Starting Kore Genome Analysis on single genome',file=sys.stderr)
-		callSinglegenomePipeline(args.correction,args.genomesize,args.read1,args.read2,args.numhits,args.kmer)
+		callSinglegenomePipeline(args.correction,args.genomesize,args.read1,args.read2,args.numhits,args.kmer,args.gfa)
 	else:
 		print(time.strftime("%c")+': Exiting process',file=sys.stderr)
 		sys.exit(1)
