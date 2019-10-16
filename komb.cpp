@@ -384,7 +384,7 @@ int main(int argc, char* argv[]){
 	int readLength = parse.get<int>("readlength");
 	if(parse.exist("gfa")){
 		processGFA(dir,readLength);
-		exit(1);
+		exit(0);
 	}
 	
 	string alignment1,alignment2;
