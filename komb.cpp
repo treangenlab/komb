@@ -9,6 +9,7 @@ extern "C"
 #include <igraph.h>
 #include <limits.h>
 }
+#include "cmdline.h"
 #include <boost/container/map.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/functional/hash.hpp>
@@ -34,6 +35,145 @@ namespace BOOST_C = boost::container;
 
 //typedef
 typedef boost::char_separator<char> separator_type;
+
+//Outputs wall-clock time to checkpoint important operations
+void printConsole(const string printThis){
+    time_t result = time(nullptr);
+    cout<<asctime(localtime(&result))<<" "<<printThis<<endl;
+}
+
+//Run K-core and PageRank on the graph
+void runAlgorithm(igraph_t &graph, string dir){
+
+	//K-Core implementation
+	igraph_vector_t vec;
+        igraph_vector_init(&vec,1);
+        printConsole("Running K-core");
+	igraph_coreness(&graph, &vec, IGRAPH_ALL);
+	FILE *outf;
+        if(dir == ""){
+		outf = fopen("kcore.txt", "w");
+	}
+	else{
+		outf = fopen((dir+"/"+"kcore.txt").c_str(),"w");
+	}	
+	for(int i = 0; i < igraph_vector_size(&vec); ++i){
+		fprintf(outf, "%d\t%d\n", i,int(igraph_vector_e(&vec, i)));
+	}
+	fclose(outf);
+	igraph_vector_destroy(&vec);
+	
+	//PageRank implementation from PRPACK and on undirected graph
+	igraph_vector_t pgvec;
+	igraph_vector_init(&pgvec,1);
+        printConsole("Running PageRank");
+	igraph_pagerank(&graph, IGRAPH_PAGERANK_ALGO_PRPACK, &pgvec, 0, igraph_vss_all(), 0, 0.31, 0, 0);
+	FILE *pgf;
+        if(dir == ""){
+		pgf = fopen("pagerank.txt", "w");
+	}
+	else{
+		pgf = fopen((dir+"/"+"pagerank.txt").c_str(),"w");
+	}	
+	for(int i = 0; i < igraph_vector_size(&pgvec); ++i){
+		fprintf(pgf, "%d\t%.3f\n", i, float(igraph_vector_e(&pgvec, i)));
+	}
+	fclose(pgf);
+	igraph_vector_destroy(&pgvec);
+	
+	//Destroy Graph
+	igraph_destroy(&graph);
+}
+
+//Store edges and strand information in GFALink class
+class GFALink{
+
+	private:
+		uint32_t unitig_a,unitig_b;
+		string orientation_a,orientation_b;
+	public:
+		GFALink(){};
+		GFALink(uint32_t unitig_a,uint32_t unitig_b, string  orientation_a, string orientation_b);
+		string getUnitigEdge();
+		uint32_t getFirstUnitig();
+		uint32_t getSecondUnitig();
+		string getFirstUnitigOrientation();
+		string getSecondUnitigOrientation();
+};
+
+
+GFALink::GFALink(uint32_t unitig_a,uint32_t unitig_b, string orientation_a, string orientation_b){
+	this->unitig_a = unitig_a;
+	this->unitig_b  = unitig_b;
+	this->orientation_a  = orientation_a;
+	this->orientation_b = orientation_b;	
+}
+
+string GFALink::getUnitigEdge(){
+	return this->unitig_a+"$"+this->unitig_b;
+}
+
+uint32_t GFALink::getFirstUnitig(){
+	return this->unitig_a;
+}
+
+uint32_t GFALink::getSecondUnitig(){
+	return this->unitig_b;
+}
+
+string GFALink::getFirstUnitigOrientation(){
+	return this->orientation_a;
+}
+
+string GFALink::getSecondUnitigOrientation(){
+	return this->orientation_b;
+}
+
+
+//Process GFA 
+void processGFA(const string dir, int readLength){
+	BOOST_C::vector<GFALink> link;
+	BOOST_C::map<uint32_t, uint32_t> contig_ids;
+	string filename;
+	if(dir == ""){
+		filename = "output.gfa";
+	}
+	else{
+		filename = dir + "/" + "output.gfa";
+	}
+	ifstream inf(filename);
+	string line;
+	uint32_t id = 0;
+	while(getline(inf,line)){
+		BOOST_C::vector<string> tokens;
+		boost::tokenizer<separator_type> tokenizer(line, separator_type("\t"));
+		for(auto it = tokenizer.begin();it!=tokenizer.end();++it){
+			tokens.push_back(*it);
+		}
+		if(tokens[0] == "S"){
+			contig_ids[stoi(tokens[1])]  = id;
+			id++;
+		}
+		if(tokens[0] == "L"){
+			GFALink gl(contig_ids[stoi(tokens[1])],contig_ids[stoi(tokens[3])],tokens[2],tokens[4]);
+			link.push_back(gl);
+		}
+	}
+	
+	//Make igraph from links
+	igraph_t graph;
+	igraph_vector_t edges;
+	igraph_vector_init(&edges,0);
+	for(auto &n : link){
+		igraph_vector_push_back(&edges,n.getFirstUnitig());
+		igraph_vector_push_back(&edges,n.getSecondUnitig());
+	}
+	link.clear();
+	igraph_create(&graph ,&edges,0,0);
+	igraph_vector_destroy(&edges);
+	runAlgorithm(graph,dir);
+	
+}
 
 //Check if unordered set is a subset
 bool is_subset_of(const boost::unordered_set<uint32_t> &a, const boost::unordered_set<uint32_t> &b){
@@ -71,12 +211,6 @@ namespace customset{
 		seed = sum+cs.uset.size();
 		return hasher(seed);
 	}
-}
-
-//Outputs wall-clock time to checkpoint important operations
-void printConsole(const string printThis){
-    time_t result = time(nullptr);
-    cout<<asctime(localtime(&result))<<" "<<printThis<<endl;
 }
 
 //execute wc -l to count number of unitigs
@@ -223,65 +357,39 @@ void processGraph(string dir){
 	}	
         igraph_read_graph_edgelist(&graph, inpf, 0, 0);
         fclose(inpf);
-
-	//K-Core implementation
-	igraph_vector_t vec;
-        igraph_vector_init(&vec,1);
-        printConsole("Running K-core");
-	igraph_coreness(&graph, &vec, IGRAPH_ALL);
-	FILE *outf;
-        if(dir == ""){
-		outf = fopen("kcore.txt", "w");
-	}
-	else{
-		outf = fopen((dir+"/"+"kcore.txt").c_str(),"w");
-	}	
-	for(int i = 0; i < igraph_vector_size(&vec); ++i){
-		fprintf(outf, "%d\t%d\n", i,int(igraph_vector_e(&vec, i)));
-	}
-	fclose(outf);
-	igraph_vector_destroy(&vec);
-	
-	//PageRank implementation from PRPACK and on undirected graph
-	igraph_vector_t pgvec;
-	igraph_vector_init(&pgvec,1);
-        printConsole("Running PageRank");
-	igraph_pagerank(&graph, IGRAPH_PAGERANK_ALGO_PRPACK, &pgvec, 0, igraph_vss_all(), 0, 0.31, 0, 0);
-	FILE *pgf;
-        if(dir == ""){
-		pgf = fopen("pagerank.txt", "w");
-	}
-	else{
-		pgf = fopen((dir+"/"+"pagerank.txt").c_str(),"w");
-	}	
-	for(int i = 0; i < igraph_vector_size(&pgvec); ++i){
-		fprintf(pgf, "%d\t%.3f\n", i, float(igraph_vector_e(&pgvec, i)));
-	}
-	fclose(pgf);
-	igraph_vector_destroy(&pgvec);
-	
-	//Destroy Graph
-	igraph_destroy(&graph);
+	runAlgorithm(graph,dir);
 }
 
 
 //main
 int main(int argc, char* argv[]){
-	//Dir is not empty if runnning in metagenome mode
-	string dir, alignment1, alignment2;
-	if (argc == 2){
-		dir = argv[1];
-		alignment1  = dir+"/"+"alignment1.sam";
-		alignment2  = dir+"/"+"alignment2.sam";
+	
+	//parse cmdline
+	cmdline::parser parse;
+	parse.add<string>("directory",'d',"Directory to store result",false,"");
+	parse.add<int>("readlength",'r',"Read Length",false,100);
+	parse.add("gfa",'g',"Run GFA build");
+
+	parse.parse_check(argc, argv);
+	
+	string dir = parse.get<string>("directory");
+	int readLength = parse.get<int>("readlength");
+	if(parse.exist("gfa")){
+		processGFA(dir,readLength);
+		exit(1);
+	}
+	
+	string alignment1,alignment2;
+	if(dir == ""){
+		alignment1 = "alignment1.sam";
+		alignment2 = "alignment2.sam";	
 	}
 	else{
-		dir = "";
-		alignment1 = "alignment1.sam";
-		alignment2 = "alignment2.sam";
+		alignment1 = dir+"/alignment1.sam";
+		alignment2 = dir+"/alignment2.sam";
 	}
 
 
-	
 	//create dictionaries to store reads to unitigs mappings
 	BOOST_C::map<string,boost::unordered_set<uint32_t> > u_map1;
 	BOOST_C::map<string,boost::unordered_set<uint32_t> > u_map2;
