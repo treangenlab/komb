@@ -425,6 +425,8 @@ def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer,gfa)
 			print(time.strftime("%c")+': Finished',file=sys.stderr)
 			sys.exit(1)
 		except subprocess.CalledProcessError as err:
+			print(err.output)
+			print(err.stderr)
 			print(time.strftime("%c")+': Error running KOMB',file=sys.stderr)
 			sys.exit(1)
 
