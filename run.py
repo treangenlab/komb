@@ -211,7 +211,7 @@ def callAbyss(readfile1,readfile2,ext1,ext2,kmer):
 	try:
 		p = subprocess.check_output('cp temp-unitigs.fa final.unitigs.fa', shell = True)
 	except subprocess.CalledProcessError as err:
-		print(time.strftime("%c")+': Could not copy abyss output to final-unitigs',file=sys.stderr)
+		print(time.strftime("%c")+': Could not copy abyss output to final.unitigs',file=sys.stderr)
 		sys.exit(1)
 
 	try:
@@ -223,7 +223,7 @@ def callAbyss(readfile1,readfile2,ext1,ext2,kmer):
 
 def callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2,mode,numhits,kmer):
 	try:
-		p = subprocess.check_output('bowtie2-build final-unitigs.fa idx', shell=True)
+		p = subprocess.check_output('bowtie2-build final.unitigs.fa idx', shell=True)
 		print(time.strftime("%c")+': Bowtie2 index created',file=sys.stderr)
 	except subprocess.CalledProcessError as err:
 		print(time.strftime("%c")+': Error creating index',file=sys.stderr)
