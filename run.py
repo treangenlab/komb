@@ -199,7 +199,7 @@ def callBcalm(kmer):
 		print(time.strftime("%c")+': Error deleting temp .h5 file',file=sys.stderr)
 		sys.exit(1)
 
-def callAbyss(readfile1,readfile2,ext1,ext2,kmer):
+def callAbyss(readfile1,readfile2,ext1,ext2,kmer,readlen):
 	try:
 		p = subprocess.check_output('abyss-pe np=16 name=temp k='+str(kmer)+' in=\''+
 									readfile1+ext1+' '+readfile2+ext2+'\' unitigs', shell = True)
@@ -209,9 +209,10 @@ def callAbyss(readfile1,readfile2,ext1,ext2,kmer):
 		sys.exit(1)
 
 	try:
-		p = subprocess.check_output('cp temp-unitigs.fa final.unitigs.fa', shell = True)
+		p = subprocess.check_output('awk \'{if (NR % 2 == 0) {if (length > ' + str(readlen) + ') {print $0;}} \
+									else {print $0;}}\' temp-unitigs.fa > final.unitigs.fa', shell = True)
 	except subprocess.CalledProcessError as err:
-		print(time.strftime("%c")+': Could not copy abyss output to final.unitigs',file=sys.stderr)
+		print(time.strftime("%c")+': Could not filter abyss output to final.unitigs',file=sys.stderr)
 		sys.exit(1)
 
 	try:
@@ -432,7 +433,7 @@ def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer,gfa)
 
 
 
-	callAbyss(readfile1,readfile2,ext1,ext2,kmer)
+	callAbyss(readfile1,readfile2,ext1,ext2,kmer,min_readsize)
 	callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2,mode,numhits,kmer)
 	#cwd = os.getcwd()
 	#read2unitigs1 = kga.read_sam(cwd+'/alignment1.sam')
