@@ -251,7 +251,8 @@ void  readSam(const string filename, BOOST_C::map<string,boost::unordered_set<ui
 
 		}
 		if(tokens.size()>7){
-			u_map[tokens[0].substr(1,tokens[0].length()-2)].insert(stoi(tokens[2]));
+			int pos = tokens[0].find("/");
+			u_map[tokens[0].substr(1,pos)].insert(stoi(tokens[2]));
 		}	
 	}
 }
