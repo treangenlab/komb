@@ -35,6 +35,6 @@ for info in $(cat $1); do
 	fname=${info_arr[0]}
 	folder=${info_arr[1]} 
 	cd ${folder};
-	run_dataset fname;
+	run_dataset ${fname};
 	cd ..;
 done
