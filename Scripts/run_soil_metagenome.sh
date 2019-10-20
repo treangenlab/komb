@@ -29,8 +29,8 @@ function run_dataset {
 	cp final.unitigs.fa $1.final.unitigs.fa;
 } 
 
-# Run for all experiments specified in the list
-for info in $(cat index.list); do
+# Run for all experiments specified in the list given as argument
+for info in $(cat $1); do
 	info_arr=( $info )
 	fname=${info_arr[0]}
 	folder=${info_arr[1]} 
