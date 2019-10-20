@@ -37,3 +37,4 @@ for info in $(cat $1); do
 	cd ${folder};
 	run_dataset fname;
 	cd ..;
+done
