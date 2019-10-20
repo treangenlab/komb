@@ -31,10 +31,12 @@ function run_dataset {
 
 # Run for all experiments specified in the list given as argument
 for info in $(cat $1); do
-	info_arr=( $info )
-	fname=${info_arr[0]}
-	folder=${info_arr[1]} 
+	info_arr=($info);
+	fname=${info_arr[0]};
+	folder=${info_arr[1]}; 
 	cd ${folder};
+	echo "Changed into directory "${folder};
 	run_dataset ${fname};
+	echo "Finished the experiment.";
 	cd ..;
 done
