@@ -131,7 +131,7 @@ string GFALink::getSecondUnitigOrientation(){
 
 
 //Process GFA 
-void processGFA(const string dir, int readLength){
+void processGFA(const string dir, uint16_t readLength){
 	BOOST_C::vector<GFALink> link;
 	BOOST_C::map<uint32_t, uint32_t> contig_ids;
 	BOOST_C::map<uint32_t,uint32_t>::iterator it1, it2;
@@ -376,13 +376,13 @@ int main(int argc, char* argv[]){
 	//parse cmdline
 	cmdline::parser parse;
 	parse.add<string>("directory",'d',"Directory to store result",false,"");
-	parse.add<int>("readlength",'r',"Read Length",false,100);
+	parse.add<uint16_t>("readlength",'r',"Read Length",false,100);
 	parse.add("gfa",'g',"Run GFA build");
 
 	parse.parse_check(argc, argv);
 	
 	string dir = parse.get<string>("directory");
-	int readLength = parse.get<int>("readlength");
+	uint16_t readLength = parse.get<uint16_t>("readlength");
 	if(parse.exist("gfa")){
 		processGFA(dir,readLength);
 		exit(0);
