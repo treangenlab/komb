@@ -366,6 +366,7 @@ void processGraph(string dir){
 	}	
         igraph_read_graph_edgelist(&graph, inpf, 0, 0);
         fclose(inpf);
+	string graphInfo = "The Graph has "+to_string((int)igraph_vcount(&graph))+" vertices and "+to_string((int)igraph_ecount(&graph))+" edges.";
 	runAlgorithm(graph,dir);
 }
 
