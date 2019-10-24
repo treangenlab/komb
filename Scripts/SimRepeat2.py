@@ -8,7 +8,7 @@ def generate_random_vec(length,
         vec = rnd.randint(0, alphabet_size, size = length)
     else:
         vec = []
-    return vec
+    return vec.astype(int)
 
 def translate_vec_to_seq(vec, 
                          alphabet = ["A", "G", "T", "C"]):
@@ -29,7 +29,7 @@ def fasta_to_vec(filename,
                 seq = seq + line.strip("\n")
             i += 1
     vec = np.append(vec, [alphabet[c] for c in seq])
-    return vec
+    return vec.astype(int)
 
 
 def generate_with_repeat(length, repeat, repeat_count, 
