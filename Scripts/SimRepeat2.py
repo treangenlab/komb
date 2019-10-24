@@ -517,21 +517,164 @@ def gensmall(seed):
         f.write("".join(translate_vec_to_seq(repeat1)))
         f.write("\n\n")
 
+def gen3bact(seed):
+    repeat1 = generate_random_vec(400)
+    repeat2 = generate_random_vec(400)
+    repeat3 = generate_random_vec(400)
+    repeat4 = generate_random_vec(400)
+    repeat5 = generate_random_vec(400)
+    repeat6 = generate_random_vec(400)
+    inter = generate_random_vec(500)
+    
+    bcereus = fasta_to_vec("Bacillus_cereus_ATCC_14579.fna")
+    ecoli = fasta_to_vec("Escherichia_coli str_K-12_substr_MG1655.fna")
+    saureus = fasta_to_vec("Staphylococcus_aureus_subsp_aureus_NCTC_8325.fna")
+    
+    # Two intra, one inter, three genomes
+    gen1 = generate_with_repeats_real_genome(bcereus, [repeat1, repeat2, inter], [200, 400, 500])
+    gen2 = generate_with_repeats_real_genome(ecoli, [repeat3, repeat4, inter], [200, 400, 500])
+    gen3 = generate_with_repeats_real_genome(saureus, [repeat5, repeat6, inter], [200, 400, 500])
+
+    seq1 = translate_vec_to_seq(gen1)
+    seq2 = translate_vec_to_seq(gen2)
+    seq3 = translate_vec_to_seq(gen3)
+    
+    with open("3bact_{}.fa".format(seed), "w") as f:
+        f.write(">3BACT\n")
+        f.write("".join(seq1))
+        f.write("".join(seq2))
+        f.write("".join(seq3))
+
+    with open("seq1_{}.fa".format(seed), "w") as f:
+        f.write(">SEQ1\n")
+        f.write("".join(seq1))
+
+    with open("seq2_{}.fa".format(seed), "w") as f:
+        f.write(">SEQ2\n")
+        f.write("".join(seq2))
+
+    with open("seq3_{}.fa".format(seed), "w") as f:
+        f.write(">SEQ3\n")
+        f.write("".join(seq3))
+
+    with open("repeats_{}.txt".format(seed), 'w') as f:
+        f.write("Seed: " + str(seed) + "\n\n")
+        f.write("".join(translate_vec_to_seq(repeat1)))
+        f.write("\n\n")
+        f.write("".join(translate_vec_to_seq(repeat2)))
+        f.write("\n\n")
+        f.write("".join(translate_vec_to_seq(repeat3)))
+        f.write("\n\n")
+        f.write("".join(translate_vec_to_seq(repeat4)))
+        f.write("\n\n")
+        f.write("".join(translate_vec_to_seq(repeat5)))
+        f.write("\n\n")
+        f.write("".join(translate_vec_to_seq(repeat6)))
+        f.write("\n\n")
+        f.write("".join(translate_vec_to_seq(inter)))
+        f.write("\n\n")
+
+def gen2bact(seed):
+    repeat1 = generate_random_vec(400)
+    repeat2 = generate_random_vec(400)
+    inter = generate_random_vec(500)
+    
+    bcereus = fasta_to_vec("Bacillus_cereus_ATCC_14579.fna")
+    ecoli = fasta_to_vec("Escherichia_coli str_K-12_substr_MG1655.fna")
+    
+    # Two intra, one inter, three genomes
+    gen1 = generate_with_repeats_real_genome(bcereus, [repeat1, inter], [200, 500])
+    gen2 = generate_with_repeats_real_genome(ecoli, [repeat2, inter], [400, 500])
+    
+    seq1 = translate_vec_to_seq(gen1)
+    seq2 = translate_vec_to_seq(gen2)
+    
+    with open("2bact_{}.fa".format(seed), "w") as f:
+        f.write(">2BACT\n")
+        f.write("".join(seq1))
+        f.write("".join(seq2))
+
+    with open("seq1_{}.fa".format(seed), "w") as f:
+        f.write(">SEQ1\n")
+        f.write("".join(seq1))
+
+    with open("seq2_{}.fa".format(seed), "w") as f:
+        f.write(">SEQ2\n")
+        f.write("".join(seq2))
+
+    with open("repeats_{}.txt".format(seed), 'w') as f:
+        f.write("Seed: " + str(seed) + "\n\n")
+        f.write("".join(translate_vec_to_seq(repeat1)))
+        f.write("\n\n")
+        f.write("".join(translate_vec_to_seq(repeat2)))
+        f.write("\n\n")
+        f.write("".join(translate_vec_to_seq(inter)))
+        f.write("\n\n")
+
+def gen2bact2(seed):
+    repeat1 = generate_random_vec(400)
+    repeat2 = generate_random_vec(400)
+    inter = generate_random_vec(500)
+    
+    bcereus = fasta_to_vec("Bacillus_cereus_ATCC_14579.fna")
+    ecoli = fasta_to_vec("Escherichia_coli str_K-12_substr_MG1655.fna")
+    
+    bcereus_seq = translate_vec_to_seq(bcereus)
+    ecoli_seq = translate_vec_to_seq(ecoli)
+
+    with open("2bact_clean_{}.fa".format(seed), "w") as f:
+        f.write(">2BACT\n")
+        f.write("".join(bcereus_seq))
+        f.write("".join(ecoli_seq))
+
+    # Two intra, one inter, three genomes
+    gen1 = generate_with_repeats_real_genome(bcereus, [repeat1, inter], [200, 50])
+    gen2 = generate_with_repeats_real_genome(ecoli, [repeat2, inter], [400, 50])
+    
+    seq1 = translate_vec_to_seq(gen1)
+    seq2 = translate_vec_to_seq(gen2)
+    
+    with open("2bact_{}.fa".format(seed), "w") as f:
+        f.write(">2BACT\n")
+        f.write("".join(seq1))
+        f.write("".join(seq2))
+
+    with open("seq1_{}.fa".format(seed), "w") as f:
+        f.write(">SEQ1\n")
+        f.write("".join(seq1))
+
+    with open("seq2_{}.fa".format(seed), "w") as f:
+        f.write(">SEQ2\n")
+        f.write("".join(seq2))
+
+    with open("repeats_{}.txt".format(seed), 'w') as f:
+        f.write("Seed: " + str(seed) + "\n\n")
+        f.write("".join(translate_vec_to_seq(repeat1)))
+        f.write("\n\n")
+        f.write("".join(translate_vec_to_seq(repeat2)))
+        f.write("\n\n")
+        f.write("".join(translate_vec_to_seq(inter)))
+        f.write("\n\n")
+
 # Main sub-routine
 def main():
-    seed = 0
+    seed = 42
     rnd.seed(seed)
 
     # genecoli(seed)
     # gensmall(seed)
 
-    gen3 = generate_random_vec(100000)
+    # gen3 = generate_random_vec(100000)
 
-    seq3 = translate_vec_to_seq(gen3)
+    # seq3 = translate_vec_to_seq(gen3)
 
-    with open("seq5_{}.fa".format(seed), "w") as f:
-        f.write(">SEQ5\n")
-        f.write("".join(seq3))
+    # with open("seq5_{}.fa".format(seed), "w") as f:
+    #     f.write(">SEQ5\n")
+    #     f.write("".join(seq3))
+
+    # gen3bact(seed)
+
+    gen2bact2(seed)
 
     # gen1gen2rep(seed)
     # gen1gen0rep(seed)
