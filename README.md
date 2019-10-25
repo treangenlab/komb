@@ -1,6 +1,5 @@
 ![alt text](Images/Logo.png)
-# KOMB
-## K(c)ore genome analyzer
+# KOMB - K(c)ore genome analyzer
 KOMB uses K-Core decomposition of unitig graphs  to analyze core genomes and repeats in single and metagenomes
 
 **Dependencies:** 2. In order to run KOMB, you will need [Python 3.x](https://www.python.org/download/releases/3.0/), [Kraken](https://github.com/DerrickWood/kraken),  [ABySS](https://github.com/bcgsc/abyss)
