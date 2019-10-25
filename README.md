@@ -1,6 +1,6 @@
+![alt text](Images/Logo.png)
 # KOMB - K(c)ore genome analyzer
-
-KOMB uses K-Core and PageRank to analyze core genomes and repeats in single and metagenomes
+KOMB uses K-Core decomposition of unitig graphs  to analyze core genomes and repeats in single and metagenomes
 
 **Dependencies:** 2. In order to run KOMB, you will need [Python 3.x](https://www.python.org/download/releases/3.0/), [Kraken](https://github.com/DerrickWood/kraken),  [ABySS](https://github.com/bcgsc/abyss)
 and [Lighter](https://github.com/mourisl/Lighter), [C++ -11](http://www.cplusplus.com/).
@@ -43,5 +43,5 @@ optional arguments:
   -n NUMHITS, --numhits NUMHITS
                         Bowtie2 maximum hits per read
 ```
-You can use the C++ igraph script as well if required by tweaking some functions. Please run
-```g++ -O3 komb.cpp -Iinclude/igraph/ -Llib/ -ligraph -I/include/boost/ -fopenmp -o komb```
+You can use the C++ igraph script as a standalone binary as well if required by tweaking some functions. Please run
+```g++ -O3 komb.cpp -Iinclude/igraph/ -Llib/ -ligraph -I/include/boost/ -fopenmp -o komb``` if you do change the kode or ```./compile.sh``` and rerun KOMB
