@@ -489,7 +489,7 @@ def main():
 		print(time.strftime("%c")+': Read 2 not provided, exiting process',file=sys.stderr)
 		sys.exit(1)
 
-	if not cmd_exists('abyss-pe):
+	if not cmd_exists('abyss-pe'):
 		print(time.strftime("%c")+': ABySS does not exist in PATH (or not installed), exiting process',file=sys.stderr)
 		sys.exit(1)
 
