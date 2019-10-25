@@ -467,7 +467,7 @@ def main():
 	parser.add_argument("-n","--numhits",type=int, help="Bowtie2 maximum hits per read", default = 1000)
 	parser.add_argument("-e","--kmer", type=int, help="Set kmer size (less than equal to 100)", default = 33)
 	parser.add_argument("-f","--gfa", help = "Build  from SPAdes GFA graph", action  = 'store_true')
-        parser.add_argument("-u","--unitig-filter", help="Filter out unitigs below read length", action = 'store_true')
+	parser.add_argument("-u","--unitig-filter", help="Filter out unitigs below read length", action = 'store_true')
 	args = parser.parse_args()
 
 	if args.kmer > 100:
