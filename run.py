@@ -199,7 +199,7 @@ def callBcalm(kmer):
 		print(time.strftime("%c")+': Error deleting temp .h5 file',file=sys.stderr)
 		sys.exit(1)
 
-def callAbyss(readfile1,readfile2,ext1,ext2,kmer,readlen):
+def callAbyss(readfile1,readfile2,ext1,ext2,kmer,readlen,filter_unitigs):
 	try:
 		p = subprocess.check_output('abyss-pe np=16 name=temp k='+str(kmer)+' in=\''+
 									readfile1+ext1+' '+readfile2+ext2+'\' unitigs', shell = True)
@@ -209,8 +209,11 @@ def callAbyss(readfile1,readfile2,ext1,ext2,kmer,readlen):
 		sys.exit(1)
 
 	try:
-		p = subprocess.check_output('awk \'{if (NR % 2 == 0) {if (length > ' + str(readlen) + ') {print $0;}} \
-									else {print $0;}}\' temp-unitigs.fa > final.unitigs.fa', shell = True)
+            if (filter_unitigs):
+                p = subprocess.check_output('awk \'{if (NR % 2 == 0) {if (length > ' + str(readlen) + ') {print $0;}} \
+									else if ($2+0 > ' +str(readlen) + ') {print $0;}}\' temp-unitigs.fa > final.unitigs.fa', shell = True)
+            else:
+                p = subprocess.check_output('cp temp-unitigs.fa final.unitigs.fa', shell = True)
 	except subprocess.CalledProcessError as err:
 		print(time.strftime("%c")+': Could not filter abyss output to final.unitigs',file=sys.stderr)
 		sys.exit(1)
@@ -377,7 +380,7 @@ def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,databa
 			sys.exit(1)
 		print(sys.stderr,time.strftime("%c")+': Finished',file=sys.stderr)
 
-def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer,gfa):
+def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer,gfa,filter_unitigs):
 	mode = ''
 	read1size = 0
 	read2size = 0
@@ -464,6 +467,7 @@ def main():
 	parser.add_argument("-n","--numhits",type=int, help="Bowtie2 maximum hits per read", default = 1000)
 	parser.add_argument("-e","--kmer", type=int, help="Set kmer size (less than equal to 100)", default = 33)
 	parser.add_argument("-f","--gfa", help = "Build  from SPAdes GFA graph", action  = 'store_true')
+        parser.add_argument("-u","--unitig-filter", help="Filter out unitigs below read length", action = 'store_true')
 	args = parser.parse_args()
 
 	if args.kmer > 100:
@@ -511,7 +515,7 @@ def main():
 
 	elif args.single:
 		print(time.strftime("%c")+': Starting Kore Genome Analysis on single genome',file=sys.stderr)
-		callSinglegenomePipeline(args.correction,args.genomesize,args.read1,args.read2,args.numhits,args.kmer,args.gfa)
+		callSinglegenomePipeline(args.correction,args.genomesize,args.read1,args.read2,args.numhits,args.kmer,args.gfa,args.unitig_filter)
 	else:
 		print(time.strftime("%c")+': Exiting process',file=sys.stderr)
 		sys.exit(1)
