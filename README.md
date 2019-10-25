@@ -43,5 +43,5 @@ optional arguments:
   -n NUMHITS, --numhits NUMHITS
                         Bowtie2 maximum hits per read
 ```
-You can use the C++ igraph script as well if required by tweaking some functions. Please run
-```g++ -O3 komb.cpp -Iinclude/igraph/ -Llib/ -ligraph -I/include/boost/ -fopenmp -o komb```
+You can use the C++ igraph script as a standalone binary as well if required by tweaking some functions. Please run
+```g++ -O3 komb.cpp -Iinclude/igraph/ -Llib/ -ligraph -I/include/boost/ -fopenmp -o komb``` if you do change the kode or ```./compile.sh``` and rerun KOMB
