@@ -209,11 +209,11 @@ def callAbyss(readfile1,readfile2,ext1,ext2,kmer,readlen,filter_unitigs):
 		sys.exit(1)
 
 	try:
-            if (filter_unitigs):
-                p = subprocess.check_output('awk \'{if (NR % 2 == 0) {if (length > ' + str(readlen) + ') {print $0;}} \
+		if (filter_unitigs):
+			p = subprocess.check_output('awk \'{if (NR % 2 == 0) {if (length > ' + str(readlen) + ') {print $0;}} \
 									else if ($2+0 > ' +str(readlen) + ') {print $0;}}\' temp-unitigs.fa > final.unitigs.fa', shell = True)
-            else:
-                p = subprocess.check_output('cp temp-unitigs.fa final.unitigs.fa', shell = True)
+		else:
+			p = subprocess.check_output('cp temp-unitigs.fa final.unitigs.fa', shell = True)
 	except subprocess.CalledProcessError as err:
 		print(time.strftime("%c")+': Could not filter abyss output to final.unitigs',file=sys.stderr)
 		sys.exit(1)
