@@ -436,7 +436,7 @@ def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer,gfa,
 
 
 
-	callAbyss(readfile1,readfile2,ext1,ext2,kmer,min_readsize)
+	callAbyss(readfile1,readfile2,ext1,ext2,kmer,min_readsize,filter_unitigs)
 	callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2,mode,numhits,kmer)
 	#cwd = os.getcwd()
 	#read2unitigs1 = kga.read_sam(cwd+'/alignment1.sam')
