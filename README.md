@@ -2,7 +2,7 @@
 
 KOMB uses K-Core decomposition of unitig graphs  to analyze core genomes and repeats in single and metagenomes
 
-![alt text](https://gitlab.com/advaitb/komb/Images/Logo.png)
+![alt text]https://gitlab.com/advaitb/komb/blob/master/Images/Logo.png)
 
 **Dependencies:** 2. In order to run KOMB, you will need [Python 3.x](https://www.python.org/download/releases/3.0/), [Kraken](https://github.com/DerrickWood/kraken),  [ABySS](https://github.com/bcgsc/abyss)
 and [Lighter](https://github.com/mourisl/Lighter), [C++ -11](http://www.cplusplus.com/).
