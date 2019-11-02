@@ -454,7 +454,7 @@ def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer,gfa,
 
 def main():
 	cwd=os.path.dirname(os.path.abspath(__file__))
-	parser = argparse.ArgumentParser(description="Kore Genome Analyzer: Graph based analysis")
+	parser = argparse.ArgumentParser(description="KOMB: K-core decomposition on unitig graph")
 	parser.add_argument("-m","--metagenome", help="Reads are metagenomes", action = 'store_true')
 	parser.add_argument("-s","--single",help="Reads are single/closely related genomes", action = 'store_true')
 	parser.add_argument("-1",'--read1',type = str, help="P.E Read1.fa/P.E Read1.fq")
