@@ -12,8 +12,8 @@ KOMB has two major dependencies for Core genome analysis:
 1. Igraph C Library
 2. Boost C++ Library
 ```
-**Read filtering**
-We use _kmer_filter_ to filter out the reads. The default filtering setting we use is given by the following string
+**Read filtering:**
+We use [_kmer_filter_](http://catchenlab.life.illinois.edu/stacks/comp/kmer_filter.php) to filter out the reads. The default filtering setting we use is given by the following string
 ```
 kmer_filter -1 READ1 -2 READ2 -o output_filtered -D --abundant --k-len 15 --max_k_freq 2
 ```
