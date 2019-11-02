@@ -12,6 +12,15 @@ KOMB has two major dependencies for Core genome analysis:
 1. Igraph C Library
 2. Boost C++ Library
 ```
+**Read filtering**
+We use _kmer_filter_ to filter out the reads. The default filtering setting we use is given by the following string
+```
+kmer_filter -1 READ1 -2 READ2 -o output_filtered -D --abundant --k-len 15 --max_k_freq 2
+```
+This will filter out all reads containing more than 80% of abundant kmers. The kmer size is 15 and abundance threshold is 2 occurences. 
+``--abundant`` flag means that those reads that have abundant kmers will be discarded and ``-D`` flag allows us to capture the discarded reads.
+We then use the files ``output_filtered/READ*discards.fq`` for the rest of the process.
+
 **Usage:**
 ``
 python3 run.py [Flags]
