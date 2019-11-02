@@ -19,14 +19,15 @@ python3 run.py [Flags]
 The description of various flags is given below. Please note that while running with **-m** it is necessary to specifiy both **-k** and **-db** i.e path to kraken and the database to use for taxonomonic classification
 ```
 usage: run.py [-h] [-m] [-s] [-1 READ1] [-2 READ2] [-c] [-g GENOMESIZE]
-              [-l LEVEL] [-k KRAKEN] [-db DATABASE] [-n NUMHITS]
+              [-l LEVEL] [-k KRAKEN] [-db DATABASE] [-n NUMHITS] [-e KMER]
+              [-f] [-u]
 
-Kore Genome Analyzer: Graph based analysis
+KOMB: K-core decomposition on unitig graph
 
 optional arguments:
   -h, --help            show this help message and exit
   -m, --metagenome      Reads are metagenomes
-  -s, --single          Reads are single genomes
+  -s, --single          Reads are single/closely related genomes
   -1 READ1, --read1 READ1
                         P.E Read1.fa/P.E Read1.fq
   -2 READ2, --read2 READ2
@@ -42,6 +43,10 @@ optional arguments:
                         path to kraken database
   -n NUMHITS, --numhits NUMHITS
                         Bowtie2 maximum hits per read
+  -e KMER, --kmer KMER  Set kmer size (less than equal to 100)
+  -f, --gfa             Build from SPAdes GFA graph
+  -u, --unitig-filter   Filter out unitigs below read length
+
 ```
 You can use the C++ igraph script as a standalone binary as well if required by tweaking some functions. Please run
 ```g++ -O3 komb.cpp -Iinclude/igraph/ -Llib/ -ligraph -I/include/boost/ -fopenmp -o komb``` if you do change the kode or ```./compile.sh``` and rerun KOMB
