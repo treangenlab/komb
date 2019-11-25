@@ -1,6 +1,6 @@
 ![alt text](Images/Logo.png)
-# KOMB - K(c)ore genome analyzer
-KOMB uses K-Core decomposition of unitig graphs  to analyze core genomes and repeats in single and metagenomes
+# KOMB - Analyzing K(c)ore repeats in (Meta)genomes
+KOMB uses K-Core decomposition of unitig graphs  to analyze repeats in single and metagenomes.
 
 ## Introduction
 <p style="text-align: center;">KOMB is a scalable and memory efficient tool that identify repetitive DNA in metagenomes. It is grounded on an efficient parallel unitig graph construction and uses K-Core decomposition
