@@ -6,6 +6,7 @@ KOMB uses K-Core decomposition of unitig graphs  to analyze core genomes and rep
 KOMB is a scalable and memory efficient tool that identify repetitive DNA in metagenomes. It is grounded on an efficient parallel unitig graph construction and uses K-Core decomposition
 \- a popular hierarchial graph decomposition tool to identify repetitive unitigs.
 
+## Dependencies
 **Dependencies:** 2. In order to run KOMB, you will need [Python 3.x](https://www.python.org/download/releases/3.0/), [Kraken](https://github.com/DerrickWood/kraken),  [ABySS](https://github.com/bcgsc/abyss)
 and [C++ -11](http://www.cplusplus.com/).
 
@@ -25,7 +26,7 @@ This will filter out all reads containing more than 80% of abundant kmers. The k
 ``--abundant`` flag means that those reads that have abundant kmers will be discarded and ``-D`` flag allows us to capture the discarded reads.
 We then use the files ``output_filtered/READ*discards.fq`` for the rest of the process.
 
-## How to Run
+## How to run KOMB?
 **Usage:**
 ``
 python3 run.py [Flags]
