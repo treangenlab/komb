@@ -30,7 +30,7 @@ KOMB has two major dependencies for Core genome analysis:
 1. Igraph C Library
 2. Boost C++ Library
 ```
-Optional Dependencies : [Kraken](https://github.com/DerrickWood/kraken) for running in metagenomic mode, [Spades](http://spades.bioinf.spbau.ru/release3.11.1/manual.html) for GFA input/output
+**Optional Dependencies:** [Kraken](https://github.com/DerrickWood/kraken) for running in metagenomic mode, [Spades](http://spades.bioinf.spbau.ru/release3.11.1/manual.html) for GFA input/output
 
 ## Preparing  data for KOMB
 **Read filtering:**
