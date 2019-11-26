@@ -7,9 +7,11 @@ KOMB uses K-Core decomposition of unitig graphs  to analyze repeats in single an
 ### Motivation
 KOMB is a scalable and memory efficient tool that identify repetitive DNA in metagenomes. It is grounded on an efficient parallel unitig graph construction and uses K-Core decomposition
 ,a popular hierarchial graph decomposition tool to identify repetitive unitigs. Efficient identification of homoilogous regions in metagenomes has been a major challenge for the community over the past few years. Explosionin high-throughput sequencing has cut down the time and cost of sequencing large samples resulting in a large number of metagenomic data. This is a difficult problem as metagenomic data often containes both inter- and intra-genomic sequence similarities that cause irregularities and induce errors in metagenomic sequence assembly. 
+
 ### Previous approaches
 Most current assemblers use a contig graph that collapse repetitive contig information and then use heuristics to identify highly 'tangled' nodes as repetitive. Previous approaches have included using Betweenness centrality based approaches which is computationally intensive and not scalable. Another recent approach has been using Approximate betweenness centrality which improves runtime but as an approximate method is combined with other 
 features like contig length and coverage as inputs to Random Forest Model for prediction. Though this method is specific it results in sub-optimal sensitivity.
+
 ### KOMB
 In contrast, we present KOMB which uses a unitig graph based approach and applies K-core decomposition an exact but efficient *O(E+V)* algortihm to identify repetitive regions in metagenomes. We use paired end read information to 
 connect unitigs both vertically (same read mapping to multiple unitigs)  and horizontally (paired reads denoting adjacency and unitgs bordering repeats) in order to preserve homology information in the graph. K-core decomposition then
