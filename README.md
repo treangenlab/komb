@@ -55,7 +55,7 @@ usage: run.py [-h] [-m] [-s] [-1 READ1] [-2 READ2] [-c] [-g GENOMESIZE]
 
 KOMB: K-core decomposition on unitig graph
 
-optional arguments:
+arguments:
   -h, --help            show this help message and exit
   -m, --metagenome      Reads are metagenomes
   -s, --single          Reads are single/closely related genomes
