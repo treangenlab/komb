@@ -80,5 +80,8 @@ arguments:
   -u, --unitig-filter   Filter out unitigs below read length
 
 ```
-You can use the C++ igraph script as a standalone binary as well if required by tweaking some functions. Please run
-```g++ -O3 komb.cpp -Iinclude/igraph/ -Llib/ -ligraph -I/include/boost/ -fopenmp -o komb``` if you do change the kode or ```./compile.sh``` and rerun KOMB
+## Contributors
+* Advait Balaji
+* Nicolae Sapoval
+
+In case of any issues please open an issue on Gitlab Issues page.
