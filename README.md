@@ -86,7 +86,7 @@ arguments:
     * Advait Balaji
     * Nicolae Sapoval
 - Project:
-    * Dr. R.A Leo Elworth
+    * Dr. R.A. Leo Elworth
     * Dr. Santiago Segarra
     * Dr. Todd J. Treangen
 
