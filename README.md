@@ -42,7 +42,7 @@ This will filter out all reads containing more than 80% of abundant kmers. The k
 We then use the files ``output_filtered/READ*discards.fq`` for the rest of the process.
 
 ## Run KOMB
-**Setup:** clone the KOMB repo and run ```make```.
+**Setup:** Clone the KOMB repo and run ```make```.
 
 **Usage:**
 ``
