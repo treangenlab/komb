@@ -30,13 +30,13 @@ KOMB has two major dependencies for Core genome analysis:
 1. Igraph C Library
 2. Boost C++ Library
 ```
-**Optional Dependencies:** [Kraken](https://github.com/DerrickWood/kraken) for running in metagenomic mode, [Spades](http://spades.bioinf.spbau.ru/release3.11.1/manual.html) for GFA input/output
+**Optional Dependencies:** [Kraken](https://github.com/DerrickWood/kraken) for running in metagenomic mode, [Spades](http://spades.bioinf.spbau.ru/release3.11.1/manual.html) for GFA input/output. Spades has already been included in external.
 
 ## Preparing  data for KOMB
 **Read filtering:**
 We use [kmer_filter](http://catchenlab.life.illinois.edu/stacks/comp/kmer_filter.php) to filter out the reads. The default filtering setting we use is given by the following string
 ```
-kmer_filter -1 READ1 -2 READ2 -o output_filtered -D --abundant --k-len 15 --max_k_freq 2
+external/kmer_filter -1 READ1 -2 READ2 -o output_filtered -D --abundant --k-len 15 --max_k_freq 2
 ```
 This will filter out all reads containing more than 80% of abundant kmers. The kmer size is 15 and abundance threshold is 2 occurences. 
 ``--abundant`` flag means that those reads that have abundant kmers will be discarded and ``-D`` flag allows us to capture the discarded reads.
