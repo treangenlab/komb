@@ -41,9 +41,10 @@ This will filter out all reads containing more than 80% of abundant kmers. The k
 ``--abundant`` flag means that those reads that have abundant kmers will be discarded and ``-D`` flag allows us to capture the discarded reads.
 We then use the files ``output_filtered/READ*discards.fq`` for the rest of the process.
 
-## Run KOMB
+## Setup
 **Setup:** Clone the KOMB repo and run ```make```.
 
+## Run KOMB
 **Usage:**
 ``
 python3 run.py [Flags]
@@ -81,7 +82,8 @@ arguments:
 
 ```
 ## Contributors
-* Advait Balaji
-* Nicolae Sapoval
+- Code:
+    * Advait Balaji
+    * Nicolae Sapoval
 
 In case of any issues please open an issue on Gitlab Issues page.
