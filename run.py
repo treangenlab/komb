@@ -444,7 +444,7 @@ def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer,gfa,
 	#read2unitigs = kga.processDictionary(read2unitigs1,read2unitigs2)
 	#G = kga.graphSecond(read2unitigs)
 	try:
-		p = subprocess.check_output('./komb', shell = True)
+		p = subprocess.check_output('build/apps/komb', shell = True)
 		print(p.decode('unicode-escape').strip('\n'))
 	except subprocess.CalledProcessError as err:
 		print(time.strftime("%c")+': Error running KOMB',file=sys.stderr)
