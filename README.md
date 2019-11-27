@@ -31,7 +31,6 @@ KOMB has two major dependencies for Core genome analysis:
 2. Boost C++ Library
 ```
 **Optional Dependencies:** [Kraken](https://github.com/DerrickWood/kraken) for running in metagenomic mode, [Spades](http://spades.bioinf.spbau.ru/release3.11.1/manual.html) for GFA input/output. Spades has already been included in external.
-
 ## Preparing  data for KOMB
 **Read filtering:**
 We use [kmer_filter](http://catchenlab.life.illinois.edu/stacks/comp/kmer_filter.php) to filter out the reads. This is included in external. The default filtering setting we use is given by the following string
@@ -43,6 +42,7 @@ This will filter out all reads containing more than 80% of abundant kmers. The k
 We then use the files ``output_filtered/READ*discards.fq`` for the rest of the process.
 
 ## Run KOMB
+**Setup:** clone the KOMB repo and run ```make``.
 **Usage:**
 ``
 python3 run.py [Flags]
