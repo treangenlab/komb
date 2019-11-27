@@ -43,6 +43,7 @@ We then use the files ``output_filtered/READ*discards.fq`` for the rest of the p
 
 ## Run KOMB
 **Setup:** clone the KOMB repo and run ```make```.
+
 **Usage:**
 ``
 python3 run.py [Flags]
