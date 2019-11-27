@@ -23,7 +23,7 @@ and real metagenomic data. More details can be found in the paper. </p>
 **Dependencies:** In order to run KOMB, you will need [Python 3.x](https://www.python.org/download/releases/3.0/),  [ABySS](https://github.com/bcgsc/abyss), [Bowtie2](https://github.com/BenLangmead/bowtie2)
 and [C++ -11](http://www.cplusplus.com/).
 
-You also need _igraph-c_, a popular C library for large scale network analysis as described [here](https://igraph.org/c/).
+You also need [igraph-c](https://igraph.org/c/), a popular C library for large scale network analysis.
 
 KOMB has two major dependencies for Core genome analysis:
 ```
