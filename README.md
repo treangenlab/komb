@@ -85,5 +85,9 @@ arguments:
 - Code:
     * Advait Balaji
     * Nicolae Sapoval
+- Project:
+`   * Dr. R.A Leo Elworth
+    * Dr. Santiago Segarra
+    * Dr. Todd J. Treangen
 
 In case of any issues please open an issue on Gitlab Issues page.
