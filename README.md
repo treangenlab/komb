@@ -84,7 +84,7 @@ arguments:
 
 ## Generating plots
 
-To generate the figures from the paper refer to ```Notebooks/KOMB Figures.ipynb``` and ```Notebooks/HMP.ipynb```. All of the required data is in the ```Data``` folder, so simply using ```Run All``` option in Jupyter will build all of the figures and save them lcoally as .png files.
+To generate the figures from the paper refer to ```Notebooks/KOMB Figures.ipynb``` and ```Notebooks/HMP.ipynb```. All of the required data is in the ```Data``` folder, so simply using **Run All** option in Jupyter will build all of the figures and save them locally as .png files.
 
 To generate the Shakya graph plot you will need the [graphviz](https://www.graphviz.org/) package to build a graph layout. We also use [ImageMagick](https://imagemagick.org/index.php) to convert the resulting layout from .ps to .png format. We run graphviz sfdp tool as follows:
 
@@ -92,7 +92,7 @@ To generate the Shakya graph plot you will need the [graphviz](https://www.graph
 sfdp -Tps Data/shakya_color_conn_after50.dot > shakya_color_conn_after50.ps
 ```
 
-Note that most of the confiuration is done inside the .dot file. In particular we use Prism algorithm from graphviz to resolve node overlaps and we set edges to be drawn transparently to avoid cluttering the picture. Finally, sfdp tool creates a force-directed layout for the graph.
+Note that most of the configuration is done inside the .dot file. In particular we use Prism algorithm from graphviz to resolve node overlaps and we set edges to be drawn transparently to avoid cluttering the picture. Finally, sfdp tool creates a force-directed layout for the graph.
 
 ## Contributors
 - Code:
