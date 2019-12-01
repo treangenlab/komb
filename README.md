@@ -43,6 +43,7 @@ We then use the files ``output_filtered/READ*discards.fq`` for the rest of the p
 
 ## Setup
 **Setup:** Clone the KOMB repo and run ```make```.
+Make will create a build directory with two subdirectories, namely, apps and objects. The komb executable will be i ``/build/apps/``.
 
 ## Run KOMB
 **Usage:**
