@@ -359,7 +359,7 @@ def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,databa
 				p = subprocess.check_output('build/apps/komb -g -r '+str(min_readsize)+' -d '+'SORT_'+str(key), shell = True)
 				print(p.decode('unicode-escape').strip('\n'))
 				print(sys.stderr,time.strftime("%c")+': Finished',file=sys.stderr)
-			except subprocess.CalledProcessErroe as err:
+			except subprocess.CalledProcessError as err:
 				print(time.strftime("%c")+': Error running KOMB',file=sys.stderr)
 				sys.exit(1)
 		sys.exit(1)
@@ -375,7 +375,7 @@ def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,databa
 		try:
 			p = subprocess.check_output('build/apps/komb -d '+'SORT_'+str(key),shell = True)
 			print(p.decode('unicode-escape').strip('\n'))
-		except subprocess.CalledProcessErroe as err:
+		except subprocess.CalledProcessError as err:
 			print(time.strftime("%c")+': Error running KOMB',file=sys.stderr)
 			sys.exit(1)
 		print(sys.stderr,time.strftime("%c")+': Finished',file=sys.stderr)
