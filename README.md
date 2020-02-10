@@ -48,11 +48,11 @@ Make will create a build directory with two subdirectories, namely, apps and obj
 ## Run KOMB
 **Usage:**
 ``
-python3 run.py [Flags]
+python3 komb.py [Flags]
 ``
 The description of various flags is given below. Please note that while running with **-m** it is necessary to specifiy both **-k** and **-db** i.e path to kraken and the database to use for taxonomonic classification
 ```
-usage: run.py [-h] [-m] [-s] [-1 READ1] [-2 READ2] [-c] [-g GENOMESIZE]
+usage: komb.py [-h] [-m] [-s] [-1 READ1] [-2 READ2] [-c] [-g GENOMESIZE]
               [-l LEVEL] [-k KRAKEN] [-db DATABASE] [-n NUMHITS] [-e KMER]
               [-f] [-u]
 
