@@ -60,8 +60,8 @@ KOMB: K-core decomposition on unitig graph
 
 arguments:
   -h, --help            show this help message and exit
-  -m, --metagenome      Reads are classified  first
-  -s, --single          Default KOMB
+  -m, --classification     Reads are classified  first
+  -s, --regular         Default KOMB
   -1 READ1, --read1 READ1
                         P.E Read1.fa/P.E Read1.fq
   -2 READ2, --read2 READ2
