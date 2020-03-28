@@ -455,8 +455,8 @@ def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer,gfa,
 def main():
 	cwd=os.path.dirname(os.path.abspath(__file__))
 	parser = argparse.ArgumentParser(description="KOMB: K-core decomposition on unitig graph")
-	parser.add_argument("-m","--metagenome", help="Reads are metagenomes", action = 'store_true')
-	parser.add_argument("-s","--single",help="Reads are single/closely related genomes", action = 'store_true')
+	parser.add_argument("-m","--classification", help="Reads are classified first", action = 'store_true')
+	parser.add_argument("-s","--regular",help="Default KOMB", action = 'store_true')
 	parser.add_argument("-1",'--read1',type = str, help="P.E Read1.fa/P.E Read1.fq")
 	parser.add_argument("-2","--read2",type = str, help="P.E Read2.fa/P.E Read2.fq",)
 	parser.add_argument("-c","--correction",help="Read correction required",action = 'store_true')
@@ -478,7 +478,7 @@ def main():
 		print(time.strftime("%c")+': Both -m and -s are set, exiting process',file=sys.stderr)
 		sys.exit(1)
 	if not args.metagenome and not args.single:
-		print(time.strftime("%c")+': Please set -m OR -s flag depending on your data, exiting process',file=sys.stderr)
+		print(time.strftime("%c")+': Please set -m OR -s flag depending on your use case, exiting process',file=sys.stderr)
 		sys.exit(1)
 	
 	if not args.read1:
