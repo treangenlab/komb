@@ -85,9 +85,9 @@ def callAbyssMeta(folder,kmer):
 		sys.exit(1)
 
 	try:
-		p = subprocess.check_output('cp temp-unitigs.fa '+folder+'/final-unitigs.fa', shell = True)
+		p = subprocess.check_output('cp temp-unitigs.fa '+folder+'/final.unitigs.fa', shell = True)
 	except subprocess.CalledProcessError as err:
-		print(time.strftime("%c")+': Could not copy abyss output to final-unitigs',file=sys.stderr)
+		print(time.strftime("%c")+': Could not copy abyss output to final.unitigs',file=sys.stderr)
 		sys.exit(1)
 
 	try:
