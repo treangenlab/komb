@@ -504,7 +504,7 @@ def main():
 		if not args.database:
 			print(time.strftime("%c")+': Kraken database path not given, exiting process',file=sys.stderr)
 			sys.exit(1)
-		print(time.strftime("%c")+': Starting Kore Genome Analysis on metagenome',file=sys.stderr)
+		print(time.strftime("%c")+': Starting KOMB in kraken-classification mode ',file=sys.stderr)
 		if args.level.lower() =='genus':
 			print(time.strftime("%c")+': Kraken output will be grouped by genus',file=sys.stderr)
 		elif args.level.lower() == 'species':
@@ -514,7 +514,7 @@ def main():
 		callMetagenomePipeline(args.correction,args.genomesize,args.read1,args.read2,args.level.lower(),args.kraken,args.database,args.numhits,args.kmer, args.gfa)
 
 	elif args.single:
-		print(time.strftime("%c")+': Starting Kore Genome Analysis on single genome',file=sys.stderr)
+		print(time.strftime("%c")+': Starting KOMB in default mode',file=sys.stderr)
 		callSinglegenomePipeline(args.correction,args.genomesize,args.read1,args.read2,args.numhits,args.kmer,args.gfa,args.unitig_filter)
 	else:
 		print(time.strftime("%c")+': Exiting process',file=sys.stderr)
