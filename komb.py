@@ -296,7 +296,7 @@ def callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2,mode,numhits,k
 		print(time.strftime("%c")+': Error removing index files',file=sys.stderr)
 		sys.exit(1)
 
-def callClassificationPipeline(correction,genomesize,read1,read2,level,kraken,database,numhits,kmer,gfa):
+def callClassificationPipeline(correction,genomesize,read1,read2,level,database,numhits,kmer,gfa):
 	mode = 'M'
 	read1size = 0
 	read2size = 0
@@ -342,7 +342,7 @@ def callClassificationPipeline(correction,genomesize,read1,read2,level,kraken,da
 		read2_cor = read2
 
 
-	k_obj = Kraken(read1_cor,read2_cor,level,kraken,database,num_reads)
+	k_obj = Kraken(read1_cor,read2_cor,level,database,num_reads)
 	k_obj.runKraken()
 	print(time.strftime("%c")+': Started reading taxonomy files',file=sys.stderr)
 	k_obj.readNodes(database+'/taxonomy/nodes.dmp')
@@ -498,9 +498,11 @@ def main():
 		sys.exit(1)
 
 	if args.classification:
-		if not args.kraken:
-			print(time.strftime("%c")+': Kraken path not given, exiting process',file=sys.stderr)
-			sys.exit(1)
+	    
+        if not cmd_exists('kraken'):
+            print(time.strftime("%c")+': Kraken does not exist in PATH (or not installed), exiting process',file=sys.stderr)
+            sys.exit(1)
+            
 		if not args.database:
 			print(time.strftime("%c")+': Kraken database path not given, exiting process',file=sys.stderr)
 			sys.exit(1)
@@ -511,7 +513,7 @@ def main():
 			print(time.strftime("%c")+': Kraken output will be grouped by species',file=sys.stderr)
 		else:
 			print(time.strftime("%c")+': Unidentified level (-l) option: [DEFAULT] Kraken will be grouped by genus',file=sys.stderr)
-		callClassificationPipeline(args.correction,args.genomesize,args.read1,args.read2,args.level.lower(),args.kraken,args.database,args.numhits,args.kmer, args.gfa)
+		callClassificationPipeline(args.correction,args.genomesize,args.read1,args.read2,args.level.lower(),args.database,args.numhits,args.kmer, args.gfa)
 
 	elif args.regular:
 		print(time.strftime("%c")+': Starting KOMB in default mode',file=sys.stderr)
