@@ -462,7 +462,6 @@ def main():
 	parser.add_argument("-c","--correction",help="Read correction required",action = 'store_true')
 	parser.add_argument("-g","--genomesize", type = int, help="Input genome size", default=200000000)
 	parser.add_argument("-l","--level", type=str, help="Classification level for kraken (genus or species)", default='genus')
-	parser.add_argument("-k","--kraken", type=str, help="path to kraken")
 	parser.add_argument("-db","--database", type=str, help="path to kraken database")
 	parser.add_argument("-n","--numhits",type=int, help="Bowtie2 maximum hits per read", default = 1000)
 	parser.add_argument("-e","--kmer", type=int, help="Set kmer size (less than equal to 100)", default = 33)
