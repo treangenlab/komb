@@ -296,7 +296,7 @@ def callBowtie2(read1size,readfile1,read2size,readfile2,ext1,ext2,mode,numhits,k
 		print(time.strftime("%c")+': Error removing index files',file=sys.stderr)
 		sys.exit(1)
 
-def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,database,numhits,kmer,gfa):
+def callClassificationPipeline(correction,genomesize,read1,read2,level,kraken,database,numhits,kmer,gfa):
 	mode = 'M'
 	read1size = 0
 	read2size = 0
@@ -380,7 +380,7 @@ def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,databa
 			sys.exit(1)
 		print(sys.stderr,time.strftime("%c")+': Finished',file=sys.stderr)
 
-def callSinglegenomePipeline(correction,genomesize,read1,read2,numhits,kmer,gfa,filter_unitigs):
+def callRegulargenomePipeline(correction,genomesize,read1,read2,numhits,kmer,gfa,filter_unitigs):
 	mode = ''
 	read1size = 0
 	read2size = 0
@@ -474,10 +474,10 @@ def main():
 		print(time.strftime("%c")+': Kmer size can\'t be above 100',file=sys.stderr)
 		sys.exit(1)
 
-	if args.metagenome and args.single:
+	if args.classification e and args.regular:
 		print(time.strftime("%c")+': Both -m and -s are set, exiting process',file=sys.stderr)
 		sys.exit(1)
-	if not args.metagenome and not args.single:
+	if not args.classification and not args.regular:
 		print(time.strftime("%c")+': Please set -m OR -s flag depending on your use case, exiting process',file=sys.stderr)
 		sys.exit(1)
 	
@@ -497,7 +497,7 @@ def main():
 		print(time.strftime("%c")+': Bowtie2 does not exist in PATH (or not installed), exiting process',file=sys.stderr)
 		sys.exit(1)
 
-	if args.metagenome:
+	if args.classification:
 		if not args.kraken:
 			print(time.strftime("%c")+': Kraken path not given, exiting process',file=sys.stderr)
 			sys.exit(1)
@@ -511,11 +511,11 @@ def main():
 			print(time.strftime("%c")+': Kraken output will be grouped by species',file=sys.stderr)
 		else:
 			print(time.strftime("%c")+': Unidentified level (-l) option: [DEFAULT] Kraken will be grouped by genus',file=sys.stderr)
-		callMetagenomePipeline(args.correction,args.genomesize,args.read1,args.read2,args.level.lower(),args.kraken,args.database,args.numhits,args.kmer, args.gfa)
+		callClassificationPipeline(args.correction,args.genomesize,args.read1,args.read2,args.level.lower(),args.kraken,args.database,args.numhits,args.kmer, args.gfa)
 
-	elif args.single:
+	elif args.regular:
 		print(time.strftime("%c")+': Starting KOMB in default mode',file=sys.stderr)
-		callSinglegenomePipeline(args.correction,args.genomesize,args.read1,args.read2,args.numhits,args.kmer,args.gfa,args.unitig_filter)
+		callRegularPipeline(args.correction,args.genomesize,args.read1,args.read2,args.numhits,args.kmer,args.gfa,args.unitig_filter)
 	else:
 		print(time.strftime("%c")+': Exiting process',file=sys.stderr)
 		sys.exit(1)
