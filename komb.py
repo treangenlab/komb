@@ -474,7 +474,7 @@ def main():
 		print(time.strftime("%c")+': Kmer size can\'t be above 100',file=sys.stderr)
 		sys.exit(1)
 
-	if args.classification e and args.regular:
+	if args.classification and args.regular:
 		print(time.strftime("%c")+': Both -m and -s are set, exiting process',file=sys.stderr)
 		sys.exit(1)
 	if not args.classification and not args.regular:
