@@ -380,7 +380,7 @@ def callClassificationPipeline(correction,genomesize,read1,read2,level,kraken,da
 			sys.exit(1)
 		print(sys.stderr,time.strftime("%c")+': Finished',file=sys.stderr)
 
-def callRegulargenomePipeline(correction,genomesize,read1,read2,numhits,kmer,gfa,filter_unitigs):
+def callRegularPipeline(correction,genomesize,read1,read2,numhits,kmer,gfa,filter_unitigs):
 	mode = ''
 	read1size = 0
 	read2size = 0
