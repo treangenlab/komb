@@ -498,14 +498,14 @@ def main():
 		sys.exit(1)
 
 	if args.classification:
-        if not cmd_exists('kraken'):
-            print(time.strftime("%c")+': Kraken does not exist in PATH (or not installed), exiting process',file=sys.stderr)
-            sys.exit(1)
+		if not cmd_exists('kraken'):
+			print(time.strftime("%c")+': Kraken does not exist in PATH (or not installed), exiting process',file=sys.stderr)
+			sys.exit(1)
 		if not args.database:
 			print(time.strftime("%c")+': Kraken database path not given, exiting process',file=sys.stderr)
 			sys.exit(1)
 		print(time.strftime("%c")+': Starting KOMB in kraken-classification mode ',file=sys.stderr)
-        if args.level.lower() =='genus':
+		if args.level.lower() =='genus':
 			print(time.strftime("%c")+': Kraken output will be grouped by genus',file=sys.stderr)
 		elif args.level.lower() == 'species':
 			print(time.strftime("%c")+': Kraken output will be grouped by species',file=sys.stderr)
