@@ -9,11 +9,10 @@ from subprocess import Popen, PIPE
 
 class Kraken:
 
-	def __init__(self,read1,read2,level,kraken,database,num_reads):
+	def __init__(self,read1,read2,level,database,num_reads):
 		self.read1 = read1
 		self.read2 = read2
 		self.level = level
-		self.kraken = kraken
 		self.database = database
 		self.num_reads = num_reads
 
@@ -42,7 +41,7 @@ class Kraken:
 
 	def runKraken(self):
 		try:
-			p = subprocess.check_output(self.kraken+'/./kraken --preload --db '+ self.database +' --threads 80 --paired '+ self.read1 + ' '+ self.read2+ ' > sequences.kraken ', shell=True)
+			p = subprocess.check_output('kraken --preload --db '+ self.database +' --threads 80 --paired '+ self.read1 + ' '+ self.read2+ ' > sequences.kraken ', shell=True)
 			print(time.strftime("%c")+': Classification complete',file=sys.stderr)
 		except subprocess.CalledProcessError as err:
 			print(time.strftime("%c")+': Error running kraken',file=sys.stderr)
