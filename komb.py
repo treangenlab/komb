@@ -85,9 +85,9 @@ def callAbyssMeta(folder,kmer):
 		sys.exit(1)
 
 	try:
-		p = subprocess.check_output('cp temp-unitigs.fa '+folder+'/final-unitigs.fa', shell = True)
+		p = subprocess.check_output('cp temp-unitigs.fa '+folder+'/final.unitigs.fa', shell = True)
 	except subprocess.CalledProcessError as err:
-		print(time.strftime("%c")+': Could not copy abyss output to final-unitigs',file=sys.stderr)
+		print(time.strftime("%c")+': Could not copy abyss output to final.unitigs',file=sys.stderr)
 		sys.exit(1)
 
 	try:
@@ -325,7 +325,7 @@ def callMetagenomePipeline(correction,genomesize,read1,read2,level,kraken,databa
 		sys.exit(1)
 
 	try:
-		p = subprocess.check_output('wc -l '+read1,shell = True)
+		p = subprocess.check_output('wc -l '+read1,shell = True).decode('utf8');
 		if ext1 == '.fq':
 			num_reads = int(p.split(' ')[0])/4
 		else:
