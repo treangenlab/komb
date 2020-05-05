@@ -1,7 +1,7 @@
 ![alt text](Images/Logo.png)
 # KOMB - Analyzing K(c)ore repeats in (Meta)genomes
 KOMB uses K-Core decomposition of unitig graphs  to analyze repeats in single and metagenomes.    
-Please do go through the [Project WIKI]() before you use KOMB to understand the intricacies of the various parameters and modes involved.
+Please do go through the [Project WIKI](https://gitlab.com/treangenlab/komb/-/wikis/Getting-Started) before you use KOMB to understand the intricacies of the various parameters and modes involved.
 
  
 
