@@ -62,10 +62,10 @@ void runBowtie2(const int& numhits, const int& readlen, std::vector<std::string>
     int return_val;
     return_val = std::system("bowtie2-build unitigs.fasta idx");
     fprintf(stdout,"Built Bowtie2 index for unitigs\n");
-    std::string align1 = "bowtie2 " + fast_x + " -x idx --sensitive -k " + std::to_string(numhits) +
+    std::string align1 = "bowtie2 " + fast_x + " -x idx --seed 7 --sensitive -k " + std::to_string(numhits) +
             " -3 " + std::to_string(readlen-kmersize+1) + " -U " + reads[0] +
             " -p " + std::to_string(threads) + " --no-unal > alignment1.sam";
-    std::string align2 = "bowtie2 " + fast_x + " -x idx --sensitive -k " + std::to_string(numhits) +
+    std::string align2 = "bowtie2 " + fast_x + " -x idx --seed 7 --sensitive -k " + std::to_string(numhits) +
                          " -3 " + std::to_string(readlen-kmersize+1) + " -U " + reads[1] +
                          " -p " + std::to_string(threads) + " --no-unal > alignment2.sam";
     return_val = std::system(align1.c_str());
