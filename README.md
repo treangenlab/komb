@@ -1,4 +1,4 @@
-![alt text](Images/Logo.png)
+![alt text](Images/Images_Logo.png)
 # KOMB
 KOMB V1.0
 
