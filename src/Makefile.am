@@ -3,5 +3,4 @@ komb_LDADD = -lz -ligraph -lbifrost
 komb_LDFLAGS = -L${CONDA_PREFIX}/lib -Wl,-rpath=${CONDA_PREFIX}/lib -fopenmp -pthread
 bin_PROGRAMS = komb
 komb_SOURCES = gfa.cpp  graph.cpp komb.cpp
-bindir = $(top_srcdir)/bin
-
+bindir = $(top_srcdir)
