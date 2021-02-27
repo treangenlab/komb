@@ -1,4 +1,4 @@
-[![Anaconda-Server Badge](https://anaconda.org/bioconda/komb/badges/downloads.svg)](https://anaconda.org/bioconda/komb)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/komb/badges/installer/conda.svg)](https://conda.anaconda.org/bioconda) [![Anaconda-Server Badge](https://anaconda.org/bioconda/komb/badges/downloads.svg)](https://anaconda.org/bioconda/komb)
 
 
 ![alt text](Images/Images_Logo.png)
