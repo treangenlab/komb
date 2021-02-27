@@ -1,3 +1,6 @@
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/komb/badges/downloads.svg)](https://anaconda.org/bioconda/komb)
+
+
 ![alt text](Images/Images_Logo.png)
 # KOMB
 KOMB V1.0
