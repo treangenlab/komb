@@ -13,6 +13,11 @@ KOMB V1.0
 
 
 ### Installation
+
+**KOMB on Bioconda:** https://anaconda.org/bioconda/komb
+
+##### Source:
+
 KOMB is installed through autotools. We've tested KOMB on both Linux and OSX.
 
 ##### On OSX:
@@ -24,8 +29,6 @@ KOMB is installed through autotools. We've tested KOMB on both Linux and OSX.
 
 Please ensure your CXX supports openmp (-fopenmp). You can install the latest llvm through brew: `brew install llvm` that should be compatible.
 
-**Important:** Users must also check if the path to the miniconda installation in `src/Makefile.am` is accurate and make any changes as needed.
-
 ##### On Linux:
 
 `./autogen.sh`   
@@ -34,12 +37,12 @@ Please ensure your CXX supports openmp (-fopenmp). You can install the latest ll
 `make install`
 
 ### KOMB usage
-Installation will create a `bin` folder and an executable `komb` inside it. Users can run KOMB as follows using various command line options.
+Installation will create  an executable `komb` inside it. Users can run KOMB as follows using various command line options.
 
 ```
 USAGE: 
 
-   ./bin/komb  [-o <string>] [-t <int>] [-k <int>] [-n <int>] [-l <int>] -r
+   ./komb  [-o <string>] [-t <int>] [-k <int>] [-n <int>] [-l <int>] -r
                <string> [-a] [-f] [-b] [-s] [--] [--version] [-h]
 
 
