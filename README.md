@@ -14,7 +14,7 @@ KOMB V1.0
 
 ### Installation
 
-**KOMB on Bioconda:** https://anaconda.org/bioconda/komb `conda install -c bioconda komb`
+**KOMB on Bioconda:** `conda install -c bioconda komb`
 
 ##### Source:
 
