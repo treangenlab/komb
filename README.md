@@ -28,12 +28,12 @@ Please ensure your CXX supports openmp (-fopenmp). On OSX You can install the la
 `make install`
 
 ### KOMB usage
-Installation will create  an executable `komb` inside it. Users can run KOMB as follows using various command line options.
+Installation will create  an executable `komb` inside it. Once the binary is obtained you can add it to path for ease of use. Users can run KOMB as follows using various command line options.
 
 ```
 USAGE: 
 
-   ./komb  [-o <string>] [-t <int>] [-k <int>] [-n <int>] [-l <int>] -r
+   komb  [-o <string>] [-t <int>] [-k <int>] [-n <int>] [-l <int>] -r
                <string> [-a] [-f] [-b] [-s] [--] [--version] [-h]
 
 
