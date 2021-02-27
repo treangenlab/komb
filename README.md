@@ -14,22 +14,13 @@ KOMB V1.0
 
 ### Installation
 
-**KOMB on Bioconda:** https://anaconda.org/bioconda/komb
+**KOMB on Bioconda:** https://anaconda.org/bioconda/komb `conda install -c bioconda komb`
 
 ##### Source:
 
 KOMB is installed through autotools. We've tested KOMB on both Linux and OSX.
 
-##### On OSX:
-
-`./autogen.sh`   
-`./configure CXX="/usr/local/Cellar/llvm/10.0.1_1/bin/clang++"`   
-`make`   
-`make install`
-
-Please ensure your CXX supports openmp (-fopenmp). You can install the latest llvm through brew: `brew install llvm` that should be compatible.
-
-##### On Linux:
+Please ensure your CXX supports openmp (-fopenmp). On OSX You can install the latest llvm through brew: `brew install llvm` that should be compatible.
 
 `./autogen.sh`   
 `./configure`   
