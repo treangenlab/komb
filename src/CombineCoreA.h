@@ -30,7 +30,7 @@ class CombineCoreA
 			{
 				nodeSuspiciousness = core_a.getAnomalyScore(degree, coreness);
 				double max_dmp = *std::max_element(nodeSuspiciousness, nodeSuspiciousness+n);
-				fprintf(stdout,"Max CoreA score: %f\n", max_dmp);
+				//fprintf(stdout,"Max CoreA score: %f\n", max_dmp);
 				double theoretical_weight = dense_ratio  * (1 / max_dmp);
 				fprintf(stdout,"Theoretical weight: %f\n", theoretical_weight);
 				std::string anomaly_output = outdir+"/CoreA_anomaly.txt";
@@ -41,12 +41,12 @@ class CombineCoreA
 				}
 				fclose(fp);
 
-            			for(int i=0; i < degree.size(); i++) 
-            			{
-                			nodeSuspiciousness[i] = theoretical_weight * nodeSuspiciousness[i];
-            			}
+            	//for(int i=0; i < degree.size(); i++) 
+            	//{
+                //	nodeSuspiciousness[i] = theoretical_weight * nodeSuspiciousness[i];
+            	//}
 			}
-
+            /***
 			CombineCoreA cca;
 			std::pair<std::vector<int>, std::vector<int> > result = cca.runMerge(al, n, nodeSuspiciousness);
 			std::set<int> anomalies;
@@ -71,6 +71,7 @@ class CombineCoreA
         		}
 
         		fclose(fp);
+             ***/
 
         		free(nodeSuspiciousness);
 
