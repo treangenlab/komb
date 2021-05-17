@@ -328,6 +328,8 @@ int main(int argc, const char** argv)
     //int weight = 10; /* fix weight as 10 for now */
     kg.anomalyDetection(outdir, true);
     fprintf(stdout,"Identified anomalous unitigs\n");
+    kg.splitAnomalousUnitigs(outdir, isBifrost);
+    fprintf(stdout,"Created anomalouss unitigs file\n");
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::steady_clock::now() - begin).count() / 1000000.0;
     fprintf(stdout, "\nTime elapsed for analysis (sec) = %.2f \n", duration);
