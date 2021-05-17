@@ -36,9 +36,12 @@ namespace komb
         void readEdgeList(const std::string& dir);
         static void runCore(igraph_t &graph, const std::string& dir);
         void processGFA(const std::string& dir, bool weight);
+        std::map<std::string, std::string> readUnitigsFile(const std::string& dir, bool isBifrost);
         void combineFile(const std::string& dir, bool isBifrost);
         void createRER(long long int& vertices, long long int& edges);
         void anomalyDetection(const std::string& dir, bool weight);
+        double getMedian(std::vector<double> vec, int start, int end);
+        void splitAnomalousUnitigs(const std:: string& dir, bool isBifrost);
         int _threads;
         int _readlength;
     };

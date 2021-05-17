@@ -250,43 +250,19 @@ namespace komb
         runCore(graph,dir);
         anomalyDetection(dir, weight);
     }
-    
-    
-    void Kgraph::combineFile(const std::string& dir, bool isBifrost)
-    {    
-        std::vector<std::vector<std::string> > kcore_lines;
+   
+    std::map<std::string, std::string> Kgraph::readUnitigsFile(const std::string& dir, bool isBifrost)
+    {
         std::map<std::string, std::string> unitigs;
-        
-        const std::string kcf = dir + "/kcore.txt";
-
-        FILE* f = fopen(kcf.c_str(),"r");
-        if (f == nullptr) { exit(EXIT_FAILURE);}
-        char* line = nullptr;
-        size_t len;
-        ssize_t read;
-
-        while(read = getline(&line,&len,f) != -1)
-        {
-            std::vector<std::string> cur_line;
-            char* token = strtok(line,"\t");
-            while(token)
-            {
-                std::string cur_token(token);
-                cur_line.emplace_back(cur_token);
-                token = strtok(NULL, "\t");
-            }    
-       
-            //cur_line[1] = cur_line[1].substr(0,cur_line[1].length()-1);
-            cur_line[1].erase(std::remove(cur_line[1].begin(), cur_line[1].end(), '\n'), cur_line[1].end());
-            kcore_lines.emplace_back(cur_line);
-        }
- 
         const std::string utgf = dir + "/unitigs.fasta";
-        
         FILE* fp = fopen(utgf.c_str(),"r");
         if (fp == nullptr) { exit(EXIT_FAILURE);}
         std::string unitig_num; 
         
+        char* line = nullptr;
+        size_t len;
+        ssize_t read;
+       
         if (!isBifrost)
         {
             while (read = getline(&line,&len,fp) != -1)
@@ -317,6 +293,39 @@ namespace komb
                 }    
             }
         }
+        return unitigs;
+    }
+    
+    void Kgraph::combineFile(const std::string& dir, bool isBifrost)
+    {    
+        std::vector<std::vector<std::string> > kcore_lines;
+        std::map<std::string, std::string> unitigs;
+        
+        const std::string kcf = dir + "/kcore.txt";
+
+        FILE* f = fopen(kcf.c_str(),"r");
+        if (f == nullptr) { exit(EXIT_FAILURE);}
+        char* line = nullptr;
+        size_t len;
+        ssize_t read;
+
+        while(read = getline(&line,&len,f) != -1)
+        {
+            std::vector<std::string> cur_line;
+            char* token = strtok(line,"\t");
+            while(token)
+            {
+                std::string cur_token(token);
+                cur_line.emplace_back(cur_token);
+                token = strtok(NULL, "\t");
+            }    
+       
+            //cur_line[1] = cur_line[1].substr(0,cur_line[1].length()-1);
+            cur_line[1].erase(std::remove(cur_line[1].begin(), cur_line[1].end(), '\n'), cur_line[1].end());
+            kcore_lines.emplace_back(cur_line);
+        }
+ 
+        unitigs = Kgraph::readUnitigsFile(dir,isBifrost);
         
         const std::string cmbf = dir + "/combined.fasta";
     
@@ -357,6 +366,109 @@ namespace komb
         igraph_lazy_adjlist_t al;                                          
         igraph_lazy_adjlist_init(&graph, &al, IGRAPH_ALL, IGRAPH_SIMPLIFY);                                   
         CombineCoreA::run(al,dir,weight);   
+        
+    }
+
+    double Kgraph::getMedian(std::vector<double> vec, int start, int end)
+    {
+       double median = 0;
+       int size = end - start - 1;
+       if (size % 2 == 0)
+       {
+           median = (vec[start + size/2 -1] + vec[start + size/2]) / 2;
+
+       }
+       else
+       {
+           median = vec[start + (size - 1) / 2];
+       }
+       return median;
+
+    }
+
+    void Kgraph::splitAnomalousUnitigs(const std:: string& dir, bool isBifrost)
+    {
+        std::string anomalyFile = dir+"/top_scoring_anomalous_unitigs.txt";
+        std::string backgroundFile = dir+"/low_scoring_anomalous_unitigs.txt";
+        std::string coreAf =  dir+"/coreA_anomaly.txt";
+        std::map<std::string, std::string> unitigs = Kgraph::readUnitigsFile(dir, isBifrost);
+        std::vector<std::vector<std::string> > coreA_lines;
+        FILE* inp_coreAf = fopen(coreAf.c_str(),"r");
+     
+        if (inp_coreAf == nullptr) { exit(EXIT_FAILURE);}
+        char* line = nullptr;
+        size_t len;
+        ssize_t read;
+
+        while(read = getline(&line,&len,inp_coreAf) != -1)
+        {
+            std::vector<std::string> cur_line;
+            char* token = strtok(line,"\t");
+            while(token)
+            {
+                std::string cur_token(token);
+                cur_line.emplace_back(cur_token);
+                token = strtok(NULL, "\t");
+            }    
+       
+            //cur_line[1] = cur_line[1].substr(0,cur_line[1].length()-1);
+            cur_line[1].erase(std::remove(cur_line[1].begin(), cur_line[1].end(), '\n'), cur_line[1].end());
+            coreA_lines.emplace_back(cur_line);
+        }
+       
+        int size = coreA_lines.size();
+        std::vector<double> anomaly_scores;
+        for(int i = 0; i < size; i++)
+        {
+            anomaly_scores.emplace_back(std::stod(coreA_lines[i][1]));
+        }
+        
+        std::vector<double> anomaly_scores_copy(anomaly_scores);
+        std::sort(anomaly_scores.begin(), anomaly_scores.end());
+
+        double q1 = Kgraph::getMedian(anomaly_scores, 0, size/2 - 1);
+        double q3;
+
+        if (size % 2 == 0) 
+        {
+           q3 = Kgraph::getMedian(anomaly_scores, size/2, size - 1);
+        } 
+        else 
+        {
+           q3 = Kgraph::getMedian(anomaly_scores, size/2 + 1, size - 1);
+        }
+        
+        double cutoff = q3 + 1.5 * (q3 - q1); 
+        
+        FILE* anomalyf = fopen(anomalyFile.c_str(), "w+");
+        FILE* backgroundf = fopen(backgroundFile.c_str(), "w+");        
+
+        for (int i = 0; i < size; i++)
+        {
+            if (anomaly_scores[i] >= cutoff)
+            {
+                std::string unitig_header = "Unitig_"+std::to_string(i);
+                fprintf(anomalyf,"%s\n",unitig_header.c_str());
+                auto key = unitigs.find(std::to_string(i));
+                if (key != unitigs.end())
+                {
+                    fprintf(anomalyf,"%s\n", key->second.c_str());
+                }
+            }
+            else
+            {
+                std::string unitig_header = "Unitig_"+std::to_string(i);
+                fprintf(backgroundf,"%s\n",unitig_header.c_str());
+                auto key = unitigs.find(std::to_string(i));
+                if (key != unitigs.end())
+                {
+                    fprintf(backgroundf,"%s\n", key->second.c_str());
+                }
+            }
+        }
+        
+        fclose(anomalyf);
+        fclose(backgroundf);
         
     }
 
