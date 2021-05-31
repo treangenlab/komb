@@ -390,7 +390,7 @@ namespace komb
     {
         std::string anomalyFile = dir+"/top_scoring_anomalous_unitigs.txt";
         std::string backgroundFile = dir+"/low_scoring_anomalous_unitigs.txt";
-        std::string coreAf =  dir+"/coreA_anomaly.txt";
+        std::string coreAf =  dir+"/CoreA_anomaly.txt";
         std::map<std::string, std::string> unitigs = Kgraph::readUnitigsFile(dir, isBifrost);
         std::vector<std::vector<std::string> > coreA_lines;
         FILE* inp_coreAf = fopen(coreAf.c_str(),"r");
@@ -420,7 +420,7 @@ namespace komb
         std::vector<double> anomaly_scores;
         for(int i = 0; i < size; i++)
         {
-            anomaly_scores.emplace_back(std::stod(CoreA_lines[i][1]));
+            anomaly_scores.emplace_back(std::stod(coreA_lines[i][1]));
         }
         
         std::vector<double> anomaly_scores_copy(anomaly_scores);
