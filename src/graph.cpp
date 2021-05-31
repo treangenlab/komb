@@ -420,7 +420,7 @@ namespace komb
         std::vector<double> anomaly_scores;
         for(int i = 0; i < size; i++)
         {
-            anomaly_scores.emplace_back(std::stod(coreA_lines[i][1]));
+            anomaly_scores.emplace_back(std::stod(CoreA_lines[i][1]));
         }
         
         std::vector<double> anomaly_scores_copy(anomaly_scores);
