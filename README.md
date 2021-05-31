@@ -5,28 +5,6 @@
 # KOMB
 KOMB V1.0
 
-### Dependencies
-* Bifrost: `conda install -c bioconda bifrost`
-* Abyss: `conda install -c bioconda abyss`
-* igraph: `conda install -c conda-forge igraph`
-* Bowtie2: `conda install -c bioconda bowtie2`
-
-
-### Installation
-
-**KOMB on Bioconda:** `conda install -c bioconda komb`
-
-##### Source:
-
-KOMB is installed through autotools. We've tested KOMB on both Linux and OSX.
-
-Please ensure your CXX supports openmp (-fopenmp). On OSX You can install the latest llvm through brew: `brew install llvm` that should be compatible.
-
-`./autogen.sh`   
-`./configure`   
-`make`   
-`make install`
-
 ### KOMB usage
 Installation will create  an executable `komb` inside it. Once the binary is obtained you can add it to path for ease of use. Users can run KOMB as follows using various command line options.
 
