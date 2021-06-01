@@ -3,7 +3,7 @@
 
 ![alt text](Images/Images_Logo.png)
 ## KOMB
-#### Welcome to the KOMB repo! Get ready to KOMB through your (large) metagenomes to find regions of biological (functional or taxonomic) interest !
+#### Welcome to the KOMB repo! Get ready to KOMB through your (large) metagenomes to find regions of biological (functional or taxonomic) interest!
 #### KOMB version: KOMB V1.0.
    
 ### **Please go through the [KOMB Gitlab Wiki](https://gitlab.com/treangenlab/komb/-/wikis/0.-Contents) for more information and documentation on KOMB.**
