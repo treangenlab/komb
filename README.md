@@ -5,7 +5,7 @@
 ## KOMB
 KOMB V1.0.
    
-### **Please go through the [KOMB Gitlab Wiki](https://gitlab.com/treangenlab/komb/-/wikis/0.-Contents) for more information on KOMB.**
+### **Please go through the [KOMB Gitlab Wiki](https://gitlab.com/treangenlab/komb/-/wikis/0.-Contents) for more information and documentation on KOMB.**
 
 ## KOMB usage
 Installation will create  an executable `komb` inside it. Once the binary is obtained you can add it to path for ease of use. Users can run KOMB as follows using various command line options.
