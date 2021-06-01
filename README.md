@@ -3,7 +3,8 @@
 
 ![alt text](Images/Images_Logo.png)
 ### KOMB
-KOMB V1.0.   
+KOMB V1.0.
+   
 #Please go through the [Gitlab Wiki](https://gitlab.com/treangenlab/komb/-/wikis/0.-Contents) for more information on KOMB.
 
 ### KOMB usage
