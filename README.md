@@ -8,6 +8,10 @@
    
 ### **Please go through the [KOMB Gitlab Wiki](https://gitlab.com/treangenlab/komb/-/wikis/0.-Contents) for more information and documentation on KOMB.**
 
+## KOMB installation
+
+KOMB can be installed through source or bioconda (recommended). Please refer to the wiki for additional instructions. Both installations should take less than 5 minutes. KOMB has been tested on OSX and Linux.
+
 ## KOMB usage
 Installation will create  an executable `komb` inside it. Once the binary is obtained you can add it to path for ease of use. Users can run KOMB as follows using various command line options.
 
