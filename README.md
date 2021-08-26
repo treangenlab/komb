@@ -12,6 +12,12 @@
 
 KOMB can be installed through source or bioconda (recommended). Please refer to the wiki for additional instructions. Both installations should take less than 5 minutes. KOMB has been tested on OSX and Linux.
 
+### KOMB example
+
+You can test KOMB by running the following command:
+`komb -r example/2bact_42.read1.fq,example/2bact_42.read2.fq -k 51 -l 100 -t 10`
+The output and runtime/memory requirements on the server used in the paper can be found [here](https://rice.box.com/s/mpbmgltih6dvxglfscozr8u6xzfwqq5q)
+
 ## KOMB usage
 Installation will create  an executable `komb` inside it. Once the binary is obtained you can add it to path for ease of use. Users can run KOMB as follows using various command line options.
 
