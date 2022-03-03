@@ -1,0 +1,47 @@
+name: komb
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+  - r
+dependencies:
+  - _libgcc_mutex=0.1=conda_forge
+  - _openmp_mutex=4.5=1_gnu
+  - abyss=2.0.2=h51208dd_5
+  - bifrost=1.0.6.2=h5b5514e_1
+  - bowtie2=2.4.2=py37h8270d21_1
+  - bwa=0.7.17=h7132678_9
+  - ca-certificates=2021.10.8=ha878542_0
+  - gmp=6.2.1=h58526e2_0
+  - icu=68.2=h9c3ff4c_0
+  - igraph=0.8.3=h689f727_2
+  - ld_impl_linux-64=2.36.1=hea4e1c9_2
+  - libffi=3.4.2=h7f98852_5
+  - libgcc-ng=11.2.0=h1d223b6_13
+  - libgfortran-ng=11.2.0=h69a702a_13
+  - libgfortran5=11.2.0=h5c6108e_13
+  - libgomp=11.2.0=h1d223b6_13
+  - libiconv=1.16=h516909a_0
+  - libnsl=2.0.0=h7f98852_0
+  - libstdcxx-ng=11.2.0=he4da1e4_13
+  - libxml2=2.9.12=h72842e0_0
+  - libzlib=1.2.11=h36c2ea0_1013
+  - make=4.3=hd18ef5c_1
+  - mpi=1.0=openmpi
+  - ncurses=6.3=h9c3ff4c_0
+  - openmpi=4.1.2=hbfc84c5_0
+  - openssl=3.0.0=h7f98852_2
+  - pandoc=2.17.1.1=ha770c72_0
+  - perl=5.32.1=2_h7f98852_perl5
+  - pip=22.0.3=pyhd8ed1ab_0
+  - pthread-stubs=0.4=h36c2ea0_1001
+  - python=3.7.12=hf930737_100_cpython
+  - python_abi=3.7=2_cp37m
+  - readline=8.1=h46c0cb4_0
+  - setuptools=60.9.3=py37h89c1867_0
+  - sqlite=3.37.0=h9cd32fc_0
+  - tbb=2021.5.0=h4bd325d_0
+  - tk=8.6.12=h27826a3_0
+  - wheel=0.37.1=pyhd8ed1ab_0
+  - xz=5.2.5=h516909a_1
+  - zlib=1.2.11=h36c2ea0_1013
