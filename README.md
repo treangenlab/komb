@@ -10,7 +10,8 @@
 
 ## KOMB installation
 
-KOMB can be installed through source or bioconda (recommended). Please refer to the wiki for additional instructions. Both installations should take less than 5 minutes. KOMB has been tested on OSX and Linux.
+KOMB can be installed through source or bioconda (recommended). Please refer to the wiki for additional instructions. Both installations should take less than 5 minutes. KOMB has been tested on OSX and Linux. We also recommend installing komb in a seperate conda environment in your system as follows:      
+`conda create -n komb python=3.7 komb`
 
 ## KOMB example
 
