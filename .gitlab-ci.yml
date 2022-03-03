@@ -7,6 +7,14 @@ before_script:
   - conda env create -f komb.yml
   - source activate komb
 
+komb_build:
+  stage: build
+  script:
+    - ./autogen.sh
+    - ./configure
+    - make
+    - make install
+
 komb_test:
   stage: test
   script:
