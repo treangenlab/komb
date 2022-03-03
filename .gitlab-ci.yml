@@ -1,0 +1,21 @@
+image: continuumio/anaconda3:latest
+
+before_script:
+  - if conda env list | grep -q 'komb'; then
+  - conda env remove --name komb
+  - fi;
+  - conda env create -f komb.yml
+  - source activate komb
+
+
+komb_test:
+  stage: test
+  script:
+    - ./komb -r example/2bact_42.read1.fq,example/2bact_42.read2.fq -k 51 -l 100 -t 10 -o komb_test
+  only: 
+    refs:
+      - merge_requests
+      - master
+  artifacts:
+    paths:
+      - ./komb_test/
