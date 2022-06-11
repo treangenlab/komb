@@ -8,6 +8,8 @@
    
 ### **Please go through the [KOMB Gitlab Wiki](https://gitlab.com/treangenlab/komb/-/wikis/0.-Contents) for more information and documentation on KOMB.**
 
+#### Validation experiments on randome genome backbones can be reproduced by running the code in the branch [biorxiv2020](https://gitlab.com/treangenlab/komb/-/tree/biorxiv2020) which contains the same algorithm but different unitig filtering options.
+
 ## KOMB installation
 
 KOMB can be installed through source or bioconda (recommended). Please refer to the wiki for additional instructions. Both installations should take less than 5 minutes. KOMB has been tested on OSX and Linux. We also recommend installing komb in a seperate conda environment in your system as follows:      
