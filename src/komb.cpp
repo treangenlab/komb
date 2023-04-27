@@ -261,7 +261,7 @@ int main(int argc, const char** argv)
 
     if (!isBifrost)
     {
-        begin_abyss = std::chrono::steady_clock::now();
+        auto begin_abyss = std::chrono::steady_clock::now();
         runAbyss(reads, kmersize, threads);
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::steady_clock::now() - begin_abyss).count() / 1000.0;
@@ -293,7 +293,7 @@ int main(int argc, const char** argv)
     const std::string fast_x = isFasta ? "-f" : "-q";
 
     /* run bowtie2 */
-    begin_bt2 = std::chrono::steady_clock::now();
+    auto begin_bt2 = std::chrono::steady_clock::now();
     runBowtie2(numhits, readlen, reads, outdir, fast_x, kmersize, threads);
     duration = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::steady_clock::now() - begin_bt2).count() / 1000.0;
@@ -325,7 +325,7 @@ int main(int argc, const char** argv)
         std::string remove_sam = "rm -rf "+outdir+"/*.sam";
         int return_val = std::system(remove_sam.c_str());
     }
-    begin_komb = std::chrono::steady_clock::now();
+    auto begin_komb = std::chrono::steady_clock::now();
     vvec edgeinfo = kg.getEdgeInfo(umap1, umap2);
     fprintf(stdout, "Processed edgeinfo\n");
     kg.generateGraph(edgeinfo, outdir);
