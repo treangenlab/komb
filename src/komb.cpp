@@ -295,7 +295,7 @@ int main(int argc, const char** argv)
     /* run bowtie2 */
     auto begin_bt2 = std::chrono::steady_clock::now();
     runBowtie2(numhits, readlen, reads, outdir, fast_x, kmersize, threads);
-    duration = std::chrono::duration_cast<std::chrono::microseconds>(
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::steady_clock::now() - begin_bt2).count() / 1000.0;
     fprintf(stdout, "Reads mapped with Bt2: %.3f ms\n", duration);
 
