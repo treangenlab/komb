@@ -364,7 +364,7 @@ namespace komb
         FILE* inpf = fopen(edgelist_file.c_str(), "r");                                                         
         igraph_read_graph_edgelist(&graph, inpf, 0, 0);                                                         
         igraph_lazy_adjlist_t al;                                          
-        igraph_lazy_adjlist_init(&graph, &al, IGRAPH_ALL, IGRAPH_LOOPS_ONCE, IGRAPH_NO_MULTIPLE);                                   
+        igraph_lazy_adjlist_init(&graph, &al, IGRAPH_ALL, IGRAPH_NO_LOOPS, IGRAPH_NO_MULTIPLE);                                   
         CombineCoreA::run(al,dir,weight);   
         
     }
