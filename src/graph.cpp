@@ -164,21 +164,21 @@ namespace komb
     void Kgraph::runCore(igraph_t &graph, const std::string& dir)
     {
         std::string kcore_file = dir+"/kcore.txt";
-        igraph_vector_t vec, deg;
-        igraph_vector_init(&vec,1);
-        igraph_vector_init(&deg,1);
+        igraph_vector_int_t vec, deg;
+        igraph_vector_int_init(&vec,1);
+        igraph_vector_int_init(&deg,1);
         igraph_degree(&graph,&deg,igraph_vss_all(),IGRAPH_ALL,IGRAPH_NO_LOOPS);
         igraph_coreness(&graph,&vec, IGRAPH_ALL);
         FILE* kcf = fopen(kcore_file.c_str(),"w+");
-        int koresize = igraph_vector_size(&vec);
+        int koresize = igraph_vector_int_size(&vec);
         for(int i = 0; i < koresize ; i++)
         {
-            fprintf(kcf, "%d\t%d\t%d\n",i,(int)igraph_vector_e(&vec,i),(int)igraph_vector_e(&deg,i));
+            fprintf(kcf, "%d\t%d\t%d\n",i,(int)igraph_vector_int_e(&vec,i),(int)igraph_vector_int_e(&deg,i));
         }
 
         fclose(kcf);
-        igraph_vector_destroy(&vec);
-        igraph_vector_destroy(&deg);
+        igraph_vector_int_destroy(&vec);
+        igraph_vector_int_destroy(&deg);
         igraph_destroy(&graph);
     }
 
@@ -233,16 +233,16 @@ namespace komb
         }
         std::set<uint32_t>().swap(u_id);
         igraph_t graph;
-        igraph_vector_t edges;
-        igraph_vector_init(&edges,0);
+        igraph_vector_int_t edges;
+        igraph_vector_int_init(&edges,0);
         for(auto &n : link)
         {
-            igraph_vector_push_back(&edges,n.getFirstUnitig());
-            igraph_vector_push_back(&edges,n.getSecondUnitig());
+            igraph_vector_int_push_back(&edges,n.getFirstUnitig());
+            igraph_vector_int_push_back(&edges,n.getSecondUnitig());
         }
         std::vector<Gfa>().swap(link);
         igraph_create(&graph,&edges,0,0);
-        igraph_vector_destroy(&edges);
+        igraph_vector_int_destroy(&edges);
         std::string edgelist_file = dir+"/edgelist.txt";
         FILE* wf = fopen(edgelist_file.c_str(),"w+");
         igraph_write_graph_edgelist(&graph, wf);
@@ -350,8 +350,8 @@ namespace komb
         igraph_t er_rand;                                                  
         igraph_rng_seed(igraph_rng_default(),7);                           
         igraph_erdos_renyi_game(&er_rand, IGRAPH_ERDOS_RENYI_GNM, vertices, edges,0,0); /* bool directed, bool loops */
-        igraph_vector_t vec;                                               
-        igraph_vector_init(&vec,1);                                        
+        igraph_vector_int_t vec;                                               
+        igraph_vector_int_init(&vec,1);                                        
         igraph_coreness(&er_rand,&vec, IGRAPH_ALL);                           
         /* delete the above block to remove igraph random graph test */
      }
@@ -364,7 +364,7 @@ namespace komb
         FILE* inpf = fopen(edgelist_file.c_str(), "r");                                                         
         igraph_read_graph_edgelist(&graph, inpf, 0, 0);                                                         
         igraph_lazy_adjlist_t al;                                          
-        igraph_lazy_adjlist_init(&graph, &al, IGRAPH_ALL, IGRAPH_SIMPLIFY);                                   
+        igraph_lazy_adjlist_init(&graph, &al, IGRAPH_ALL, IGRAPH_LOOPS_ONCE, IGRAPH_NO_MULTIPLE);                                   
         CombineCoreA::run(al,dir,weight);   
         
     }
