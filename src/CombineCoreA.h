@@ -106,14 +106,14 @@ class CombineCoreA
 			int size;
 			for(int src = 0; src < numNodes; src++)
 			{
-				igraph_vector_t* vec = igraph_lazy_adjlist_get(&al,src);
-				size = igraph_vector_size(vec);
+				igraph_vector_int_t* vec = igraph_lazy_adjlist_get(&al,src);
+				size = igraph_vector_int_size(vec);
 				if(size)
 				{
 					for(int i = 0; i < size; i++)
 					{
 						rowDegree[src] += 1;
-						colDegree[(int)igraph_vector_e(vec,i)] += 1;
+						colDegree[(int)igraph_vector_int_e(vec,i)] += 1;
 						edgeNum += 1;
 					}
 				}
@@ -182,13 +182,13 @@ class CombineCoreA
             			removed[modeToRemove][node] = true;
             
             			int size;
-           			igraph_vector_t* vec = igraph_lazy_adjlist_get(&al,node);
-    				size = igraph_vector_size(vec);
+           			igraph_vector_int_t* vec = igraph_lazy_adjlist_get(&al,node);
+    				size = igraph_vector_int_size(vec);
             			if(modeToRemove == 0) 
             			{ //remove from rows
                 			for (int i = 0; i < size; i++) 
               				{
-                    				int dst = igraph_vector_e(vec,i);
+                    				int dst = igraph_vector_int_e(vec,i);
                     				if (!removed[1][dst]) 
                     				{
                         				colHeap.refreshPriority(dst, colHeap.getPriority(dst) - 1);
@@ -199,7 +199,7 @@ class CombineCoreA
             			{ //remove from columns
             				for (int i = 0; i < size; i++) 
                 			{
-                    				int dst = igraph_vector_e(vec,i);
+                    				int dst = igraph_vector_int_e(vec,i);
                     				if (!removed[0][dst]) 
                     				{
                         				rowHeap.refreshPriority(dst, rowHeap.getPriority(dst) - 1);
