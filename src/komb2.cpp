@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 #include <algorithm>
-#define __version__ "1.0"
+#define __version__ "2.0"
 
 int main(int argc, const char** argv)
 {
@@ -41,6 +41,9 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<std::string> input2Arg("j", "input2",
       "Second input SAM file [Default: alignment2.sam]", true,
       "alignment2.sam", "string");
+   TCLAP::ValueArg<std::string> inputUnitigsArg("u", "input-unitigs",
+      "FASTA file containing unitigs [Default: unitigs.fa]", true,
+      "unitigs.fa", "string");
     TCLAP::ValueArg<int> readlenArg("l", "readlen",
        "Read Length (can be average) [Default: 151]", false, 151,
        "int");
@@ -52,6 +55,7 @@ int main(int argc, const char** argv)
        "string");
     cmd.add(inputArg);
     cmd.add(input2Arg);
+    cmd.add(inputUnitigsArg);
     cmd.add(readlenArg);
     cmd.add(threadsArg);
     cmd.add(outputArg);
@@ -62,6 +66,7 @@ int main(int argc, const char** argv)
     const std::string outdir = outputArg.getValue();
     const std::string input = inputArg.getValue();
     const std::string input2 = input2Arg.getValue();
+    const std::string inputUnitigs = inputUnitigsArg.getValue();
     const int readlen = readlenArg.getValue();
     int threads = threadsArg.getValue();
 
@@ -96,11 +101,11 @@ int main(int argc, const char** argv)
     fprintf(stdout, "Created edgelist\n");
     kg.readEdgeList(outdir);
     fprintf(stdout, "Created Kcore\n");
-    kg.combineFile(outdir, isBifrost);
+    kg.combineFile(outdir, inputUnitigs);
     //int weight = 10; /* fix weight as 10 for now */
     kg.anomalyDetection(outdir, true);
     fprintf(stdout,"Identified anomalous unitigs\n");
-    kg.splitAnomalousUnitigs(outdir, isBifrost);
+    kg.splitAnomalousUnitigs(outdir, inputUnitigs);
     fprintf(stdout,"Created anomalouss unitigs file\n");
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::steady_clock::now() - begin_komb).count() / 1000000.0;

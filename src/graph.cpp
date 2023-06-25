@@ -1,5 +1,6 @@
 //
-// Created by Advait Balaji on 6/30/20.
+// Created by Advait Balaji on 06/30/2020.
+// Modified by Nicolae Sapoval on 06/25/2023.
 //
 
 #include <cstring>
@@ -11,7 +12,6 @@ using namespace gfa;
 
 namespace komb
 {
-
     Kgraph::Kgraph(uint32_t threads)
     {
         _threads = threads;
@@ -23,10 +23,15 @@ namespace komb
         _readlength = readlength;
     }
 
+    void Kgraph::fileNotFoundError(const std::string& path) {
+        std::cerr << "File " << path << " could not be opened. Exiting..." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
     void Kgraph::readSAM(const std::string &samfile, umapset &umap)
     {
-        FILE* f = fopen(samfile.c_str(),"r");
-        if (f == nullptr) { exit(EXIT_FAILURE);}
+        FILE* f = fopen(samfile.c_str(), "r");
+        if (f == nullptr) { fileNotFoundError(samfile); }
         char* line = nullptr;
         size_t len;
         ssize_t read;
@@ -44,9 +49,12 @@ namespace komb
                     count++;
                 }
                 std::string unitig(token);
-                umap[read.substr(1,read.find('/'))].insert(std::stol(unitig));
+                try {
+                    umap[read.substr(1, read.find('/'))].insert(std::stol(unitig));
+                } catch (std::invalid_argument) {
+                    // This should only happen if the read is unmapped (flag 0x4), as in that case unitig name is '*'
+                }
             }
-
         }
     }
 
@@ -68,7 +76,7 @@ namespace komb
 
         //filter those sets already seen or that are a subset of previously seen sets
         int num_reads = pair_read.size();
-        fprintf(stdout,"Num pairs to be processed: %d\n",num_reads);
+        fprintf(stdout, "Num pairs to be processed: %d\n", num_reads);
         //int workload = num_reads/_threads;
         #pragma omp parallel for num_threads(_threads)
         for(uint32_t i = 0; i < num_reads; i++)
@@ -94,15 +102,13 @@ namespace komb
         return edgeinfo;
     }
 
-
-
     void Kgraph::generateGraph(vvec& vec, const std::string& dir)
     {
         std::string edgelist_file = dir+"/edgelist.txt";
         uspair seen_edge;
-        FILE* ef = fopen(edgelist_file.c_str(),"w+");
+        FILE* ef = fopen(edgelist_file.c_str(), "w+");
         int num_sets_unitigs = vec.size();
-        fprintf(stdout,"Number of unitig sets to interconnect: %zu\n",vec.size());
+        fprintf(stdout, "Number of unitig sets to interconnect: %zu\n", vec.size());
         for(int i = 0; i < num_sets_unitigs; i++)
         {
             std::vector<uint32_t> tempvec = vec[i];
@@ -153,12 +159,13 @@ namespace komb
         std::string edgelist_file = dir+"/edgelist.txt";
         igraph_t graph;
         FILE* inpf = fopen(edgelist_file.c_str(), "r");
+        if (inpf == nullptr) { fileNotFoundError(edgelist_file); }
+
         igraph_read_graph_edgelist(&graph, inpf, 0, 0);
         fclose(inpf);
-        fprintf(stdout,"GraphInfo...\n\tNumber of vertices: %d\n",(int)igraph_vcount(&graph));
-        fprintf(stdout,"\tNumber of edges: %d\n",(int)igraph_ecount(&graph));
-
-        runCore(graph,dir);
+        fprintf(stdout, "GraphInfo...\n\tNumber of vertices: %d\n", (int)igraph_vcount(&graph));
+        fprintf(stdout, "\tNumber of edges: %d\n", (int)igraph_ecount(&graph));
+        runCore(graph, dir);
     }
 
     void Kgraph::runCore(igraph_t &graph, const std::string& dir)
@@ -169,11 +176,11 @@ namespace komb
         igraph_vector_int_init(&deg,1);
         igraph_degree(&graph,&deg,igraph_vss_all(),IGRAPH_ALL,IGRAPH_NO_LOOPS);
         igraph_coreness(&graph,&vec, IGRAPH_ALL);
-        FILE* kcf = fopen(kcore_file.c_str(),"w+");
+        FILE* kcf = fopen(kcore_file.c_str(), "w+");
         int koresize = igraph_vector_int_size(&vec);
         for(int i = 0; i < koresize ; i++)
         {
-            fprintf(kcf, "%d\t%d\t%d\n",i,(int)igraph_vector_int_e(&vec,i),(int)igraph_vector_int_e(&deg,i));
+            fprintf(kcf, "%d\t%d\t%d\n", i, (int)igraph_vector_int_e(&vec,i),(int)igraph_vector_int_e(&deg,i));
         }
 
         fclose(kcf);
@@ -188,7 +195,7 @@ namespace komb
         std::vector<Gfa> link;
         std::set<uint32_t> u_id;
         FILE* gfafile = fopen(gfa_file.c_str(),"r");
-        if (gfafile == nullptr) { exit(EXIT_FAILURE);}
+        if (gfafile == nullptr) { fileNotFoundError(gfa_file); }
         char* line = nullptr;
         size_t len;
         ssize_t rec;
@@ -251,52 +258,33 @@ namespace komb
         anomalyDetection(dir, weight);
     }
    
-    std::map<std::string, std::string> Kgraph::readUnitigsFile(const std::string& dir, bool isBifrost)
+    std::map<std::string, std::string> Kgraph::readUnitigsFile(const std::string& inputUnitigs)
     {
         std::map<std::string, std::string> unitigs;
-        const std::string utgf = dir + "/unitigs.fasta";
-        FILE* fp = fopen(utgf.c_str(),"r");
-        if (fp == nullptr) { exit(EXIT_FAILURE);}
+        FILE* fp = fopen(inputUnitigs.c_str(),"r");
+        if (fp == nullptr) { fileNotFoundError(inputUnitigs); }
         std::string unitig_num; 
         
         char* line = nullptr;
         size_t len;
         ssize_t read;
        
-        if (!isBifrost)
+        while (read = getline(&line,&len,fp) != -1)
         {
-            while (read = getline(&line,&len,fp) != -1)
+            std::string uline(line); 
+            if (uline.substr(0,1) == ">")
             {
-                std::string uline(line); 
-                if (uline.substr(0,1) == ">")
-                {
-                    unitig_num = uline.substr(1,uline.find(" ")-1);
-                }
-                else
-                {
-                    unitigs[unitig_num]  = uline.substr(0,uline.length()-1);
-                }    
-            }    
-        }
-        else
-        {
-            while (read = getline(&line,&len,fp) != -1)
-            {
-                std::string uline(line); 
-                if (uline.substr(0,1) == ">")
-                {
-                    unitig_num = uline.substr(1,uline.length()-2);
-                }
-                else
-                {
-                    unitigs[unitig_num]  = uline.substr(0,uline.length()-1);
-                }    
+                unitig_num = uline.substr(1, uline.find(" ")-1);
             }
-        }
+            else
+            {
+                unitigs[unitig_num] = uline.substr(0, uline.length()-1);
+            }    
+        }    
         return unitigs;
     }
     
-    void Kgraph::combineFile(const std::string& dir, bool isBifrost)
+    void Kgraph::combineFile(const std::string& dir, const std::string& inputUnitigs)
     {    
         std::vector<std::vector<std::string> > kcore_lines;
         std::map<std::string, std::string> unitigs;
@@ -304,7 +292,7 @@ namespace komb
         const std::string kcf = dir + "/kcore.txt";
 
         FILE* f = fopen(kcf.c_str(),"r");
-        if (f == nullptr) { exit(EXIT_FAILURE);}
+        if (f == nullptr) { fileNotFoundError(kcf); }
         char* line = nullptr;
         size_t len;
         ssize_t read;
@@ -325,7 +313,7 @@ namespace komb
             kcore_lines.emplace_back(cur_line);
         }
  
-        unitigs = Kgraph::readUnitigsFile(dir,isBifrost);
+        unitigs = Kgraph::readUnitigsFile(inputUnitigs);
         
         const std::string cmbf = dir + "/combined.fasta";
     
@@ -348,7 +336,7 @@ namespace komb
     {
         /* test igraph random graph generation */                                
         igraph_t er_rand;                                                  
-        igraph_rng_seed(igraph_rng_default(),7);                           
+        igraph_rng_seed(igraph_rng_default(), 7);                           
         igraph_erdos_renyi_game(&er_rand, IGRAPH_ERDOS_RENYI_GNM, vertices, edges,0,0); /* bool directed, bool loops */
         igraph_vector_int_t vec;                                               
         igraph_vector_int_init(&vec,1);                                        
@@ -358,15 +346,14 @@ namespace komb
     
     void Kgraph::anomalyDetection(const std::string& dir, bool weight)
     {
-                                
         std::string edgelist_file = dir+"/edgelist.txt";                   
         igraph_t graph;                                                    
-        FILE* inpf = fopen(edgelist_file.c_str(), "r");                                                         
+        FILE* inpf = fopen(edgelist_file.c_str(), "r");
+        if (inpf == nullptr) { fileNotFoundError(edgelist_file); }                                                         
         igraph_read_graph_edgelist(&graph, inpf, 0, 0);                                                         
         igraph_lazy_adjlist_t al;                                          
         igraph_lazy_adjlist_init(&graph, &al, IGRAPH_ALL, IGRAPH_NO_LOOPS, IGRAPH_NO_MULTIPLE);                                   
-        CombineCoreA::run(al,dir,weight);   
-        
+        CombineCoreA::run(al, dir, weight);
     }
 
     double Kgraph::getMedian(std::vector<double> vec, int start, int end)
@@ -375,8 +362,7 @@ namespace komb
        int size = end - start - 1;
        if (size % 2 == 0)
        {
-           median = (vec[start + size/2 -1] + vec[start + size/2]) / 2;
-
+           median = (vec[start + size/2 - 1] + vec[start + size/2]) / 2;
        }
        else
        {
@@ -386,16 +372,16 @@ namespace komb
 
     }
 
-    void Kgraph::splitAnomalousUnitigs(const std:: string& dir, bool isBifrost)
+    void Kgraph::splitAnomalousUnitigs(const std:: string& dir, const std:: string& inputUnitigs)
     {
         std::string anomalyFile = dir+"/top_scoring_anomalous_unitigs.txt";
         std::string backgroundFile = dir+"/low_scoring_anomalous_unitigs.txt";
         std::string coreAf =  dir+"/CoreA_anomaly.txt";
-        std::map<std::string, std::string> unitigs = Kgraph::readUnitigsFile(dir, isBifrost);
+        std::map<std::string, std::string> unitigs = Kgraph::readUnitigsFile(inputUnitigs);
         std::vector<std::vector<std::string> > coreA_lines;
-        FILE* inp_coreAf = fopen(coreAf.c_str(),"r");
-     
-        if (inp_coreAf == nullptr) { exit(EXIT_FAILURE);}
+        FILE* inp_coreAf = fopen(coreAf.c_str(), "r");
+        if (inp_coreAf == nullptr) { fileNotFoundError(coreAf); }
+
         char* line = nullptr;
         size_t len;
         ssize_t read;
@@ -469,7 +455,6 @@ namespace komb
         
         fclose(anomalyf);
         fclose(backgroundf);
-        
     }
 
 } // namespace komb
