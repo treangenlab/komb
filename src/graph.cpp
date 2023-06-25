@@ -12,12 +12,12 @@ using namespace gfa;
 namespace komb
 {
 
-    Kgraph::Kgraph(int threads)
+    Kgraph::Kgraph(uint32_t threads)
     {
         _threads = threads;
     }
 
-    Kgraph:: Kgraph(int threads, int readlength)
+    Kgraph:: Kgraph(uint32_t threads, uint64_t readlength)
     {
         _threads = threads;
         _readlength = readlength;
@@ -44,7 +44,7 @@ namespace komb
                     count++;
                 }
                 std::string unitig(token);
-                umap[read.substr(1,read.find('/'))].insert(std::stoi(unitig));
+                umap[read.substr(1,read.find('/'))].insert(std::stol(unitig));
             }
 
         }

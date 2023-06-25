@@ -18,7 +18,7 @@
 #include "gfa.h"
 #include "CombineCoreA.h"
 
-typedef std::map<std::string,std::set<uint32_t> > umapset;
+typedef std::map<std::string,std::set<uint64_t> > umapset;
 typedef std::vector<std::vector<uint32_t> > vvec;
 typedef std::vector<std::set<uint32_t> > vecset;
 
@@ -26,9 +26,12 @@ typedef std::vector<std::set<uint32_t> > vecset;
 namespace komb
 {
     class Kgraph {
+        uint32_t _threads;
+        uint64_t _readlength;
+
     public:
-        Kgraph(int threads);
-        Kgraph(int threads, int readlength);
+        Kgraph(uint32_t threads);
+        Kgraph(uint32_t threads, uint64_t readlength);
         void readSAM(const std::string &samfile, umapset &umap);
         vvec getEdgeInfo(umapset &umap1, umapset &umap2);
         void generateGraph(std::vector<std::vector<uint32_t> > &vec,
@@ -42,34 +45,7 @@ namespace komb
         void anomalyDetection(const std::string& dir, bool weight);
         double getMedian(std::vector<double> vec, int start, int end);
         void splitAnomalousUnitigs(const std:: string& dir, bool isBifrost);
-        int _threads;
-        int _readlength;
     };
-
-
-    class HashSet
-    {
-        public:
-            inline std::size_t operator()(const std::set<uint32_t> &s) const
-            {
-                std::vector<int> sums(s.size(), 0);
-                std::vector<int> products(s.size());
-                std::partial_sum(s.begin(), s.end(), sums.begin());
-                std::partial_sum(s.begin(), s.end(), products.begin(),
-                             std::multiplies<int>());
-                return sums[s.size() - 1] + products[s.size() - 1];
-            }
-    };
-
-    class HashPairSet
-    {
-        public:
-            inline std::size_t  operator()(const std::pair<uint32_t, uint32_t> &p ) const
-            {
-                return p.first + p.second + (p.first * p.second);
-            }
-    };
-
 }
 
 typedef std::set<std::set<uint32_t> > usset;
