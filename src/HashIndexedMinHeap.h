@@ -9,9 +9,7 @@
 
 class HashIndexedMinHeap
 {
-
 	public:
-
 		HashIndexedMinHeap(int capacity)
 		{
 			this->array = (int*)malloc(sizeof(int)*capacity);

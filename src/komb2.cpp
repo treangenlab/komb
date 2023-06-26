@@ -1,6 +1,5 @@
 #include <cstdlib>
 #include <iostream>
-#include <CompactedDBG.hpp>
 #include <omp.h>
 #include <igraph.h>
 #include "test.h"
@@ -75,9 +74,14 @@ int main(int argc, const char** argv)
     /* create output dir */
     const std::string create_dir = "mkdir " + outdir;
     int return_val = std::system(create_dir.c_str());
+    if (return_val != 0) { 
+      std::cerr << "Could not create output directory: " << create_dir << ". Exiting..." << std::endl;
+      exit(EXIT_FAILURE);
+    }
 
     /* run KOMB core */
-    auto kg = komb::Kgraph(threads, readlen); //use this instantiation
+    igraph_set_attribute_table(&igraph_cattribute_table);  // to correctly handle arbitrary unitig names
+    auto kg = komb::Kgraph(threads, readlen);  // use this instantiation
     umapset umap1, umap2;
 
     #pragma omp parallel
@@ -92,13 +96,13 @@ int main(int argc, const char** argv)
 
     }
 
-    fprintf(stdout, "Read SAM files\n");
+   //  fprintf(stdout, "Read SAM files\n");
     
     auto begin_komb = std::chrono::steady_clock::now();
     vvec edgeinfo = kg.getEdgeInfo(umap1, umap2);
-    fprintf(stdout, "Processed edgeinfo\n");
+   //  fprintf(stdout, "Processed edgeinfo\n");
     kg.generateGraph(edgeinfo, outdir);
-    fprintf(stdout, "Created edgelist\n");
+   //  fprintf(stdout, "Created edgelist\n");
     kg.readEdgeList(outdir);
     fprintf(stdout, "Created Kcore\n");
     kg.combineFile(outdir, inputUnitigs);
@@ -112,7 +116,7 @@ int main(int argc, const char** argv)
     fprintf(stdout, "\nTime elapsed for KOMB: %.3f ms\n", duration);
     duration = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::steady_clock::now() - begin).count() / 1000000.0;
-    fprintf(stdout, "\nTime elapsed for analysis (sec) = %.2f \n", duration);
+    fprintf(stdout, "\nTime elapsed for analysis (msec) = %.3f \n", duration);
         
     return 0;
 

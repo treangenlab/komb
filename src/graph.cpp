@@ -17,7 +17,7 @@ namespace komb
         _threads = threads;
     }
 
-    Kgraph:: Kgraph(uint32_t threads, uint64_t readlength)
+    Kgraph::Kgraph(uint32_t threads, uint64_t readlength)
     {
         _threads = threads;
         _readlength = readlength;
@@ -34,13 +34,13 @@ namespace komb
         if (f == nullptr) { fileNotFoundError(samfile); }
         char* line = nullptr;
         size_t len;
-        ssize_t read;
+        ssize_t bytes_read;
 
-        while(read = getline(&line,&len,f) != -1)
+        while(bytes_read = getline(&line, &len, f) != -1)
         {
             if(line[0] != '@')
             {
-                char* token = strtok(line,"\t");
+                char* token = strtok(line, "\t");
                 std::string read(token);
                 uint8_t count = 0;
                 while(token && (count < 2))
@@ -49,10 +49,8 @@ namespace komb
                     count++;
                 }
                 std::string unitig(token);
-                try {
-                    umap[read.substr(1, read.find('/'))].insert(std::stol(unitig));
-                } catch (std::invalid_argument) {
-                    // This should only happen if the read is unmapped (flag 0x4), as in that case unitig name is '*'
+                if (unitig.compare("*") != 0) {  // '*' indicates an unmapped read in SAM
+                    umap[read.substr(1, read.find('/'))].insert(unitig);
                 }
             }
         }
@@ -81,7 +79,7 @@ namespace komb
         #pragma omp parallel for num_threads(_threads)
         for(uint32_t i = 0; i < num_reads; i++)
         {
-            std::set<uint32_t> tempset;
+            std::set<std::string> tempset;
             #pragma omp critical
             {
                 tempset.insert(umap1[pair_read[i]].begin(), umap1[pair_read[i]].end());
@@ -91,7 +89,7 @@ namespace komb
                     if (seen_set.find(tempset) == seen_set.end()) 
                     {
                         seen_set.insert(tempset);
-                        std::vector<uint32_t> tempvec{tempset.begin(), tempset.end()};
+                        std::vector<std::string> tempvec{tempset.begin(), tempset.end()};
                         edgeinfo.emplace_back(tempvec);
                     }
                 }
@@ -111,7 +109,7 @@ namespace komb
         fprintf(stdout, "Number of unitig sets to interconnect: %zu\n", vec.size());
         for(int i = 0; i < num_sets_unitigs; i++)
         {
-            std::vector<uint32_t> tempvec = vec[i];
+            std::vector<std::string> tempvec = vec[i];
 
             #pragma omp parallel for collapse(2) num_threads(_threads)
             for(uint32_t j = 0 ; j < tempvec.size(); j++)
@@ -124,24 +122,24 @@ namespace komb
                         if(tempvec[j] > tempvec[k])
                         {
                             //check if  edge already seen
-                            if (seen_edge.find(std::make_pair(tempvec[j],tempvec[k])) == seen_edge.end())
+                            if (seen_edge.find(std::make_pair(tempvec[j], tempvec[k])) == seen_edge.end())
                             {
                                 #pragma omp critical
                                 {
-                                    fprintf(ef,"%d\t%d\n",tempvec[j],tempvec[k]);
-                                    seen_edge.insert(std::make_pair(tempvec[j],tempvec[k]));
+                                    fprintf(ef,"%s\t%s\n", tempvec[j].c_str(), tempvec[k].c_str());
+                                    seen_edge.insert(std::make_pair(tempvec[j], tempvec[k]));
                                 }
                             }
                         }
                         else
                         {
                             //check if edge already seen
-                            if (seen_edge.find(std::make_pair(tempvec[k],tempvec[j])) == seen_edge.end())
+                            if (seen_edge.find(std::make_pair(tempvec[k], tempvec[j])) == seen_edge.end())
                             {
                                 #pragma omp critical
                                 {
-                                    fprintf(ef,"%d\t%d\n",tempvec[k],tempvec[j]);
-                                    seen_edge.insert(std::make_pair(tempvec[k],tempvec[j]));
+                                    fprintf(ef, "%s\t%s\n", tempvec[k].c_str(), tempvec[j].c_str());
+                                    seen_edge.insert(std::make_pair(tempvec[k], tempvec[j]));
                                 }
                             }
                         }
@@ -161,103 +159,34 @@ namespace komb
         FILE* inpf = fopen(edgelist_file.c_str(), "r");
         if (inpf == nullptr) { fileNotFoundError(edgelist_file); }
 
-        igraph_read_graph_edgelist(&graph, inpf, 0, 0);
+        igraph_read_graph_ncol(&graph, inpf, NULL, true, IGRAPH_ADD_WEIGHTS_NO, IGRAPH_UNDIRECTED);
         fclose(inpf);
-        fprintf(stdout, "GraphInfo...\n\tNumber of vertices: %d\n", (int)igraph_vcount(&graph));
-        fprintf(stdout, "\tNumber of edges: %d\n", (int)igraph_ecount(&graph));
+        fprintf(stdout, "GraphInfo...\n\tNumber of vertices: %d\n", (int) igraph_vcount(&graph));
+        fprintf(stdout, "\tNumber of edges: %d\n", (int) igraph_ecount(&graph));
         runCore(graph, dir);
     }
 
     void Kgraph::runCore(igraph_t &graph, const std::string& dir)
     {
-        std::string kcore_file = dir+"/kcore.txt";
+        std::string kcore_file = dir+"/kcore.tsv";
         igraph_vector_int_t vec, deg;
-        igraph_vector_int_init(&vec,1);
-        igraph_vector_int_init(&deg,1);
-        igraph_degree(&graph,&deg,igraph_vss_all(),IGRAPH_ALL,IGRAPH_NO_LOOPS);
-        igraph_coreness(&graph,&vec, IGRAPH_ALL);
+        igraph_vector_int_init(&vec, 1);
+        igraph_vector_int_init(&deg, 1);
+        igraph_degree(&graph, &deg, igraph_vss_all(), IGRAPH_ALL, IGRAPH_NO_LOOPS);
+        igraph_coreness(&graph, &vec, IGRAPH_ALL);
         FILE* kcf = fopen(kcore_file.c_str(), "w+");
         int koresize = igraph_vector_int_size(&vec);
-        for(int i = 0; i < koresize ; i++)
+        fprintf(kcf, "#VID\tName\tCoreness\tDegree\n");
+        for(int i = 0; i < koresize; i++)
         {
-            fprintf(kcf, "%d\t%d\t%d\n", i, (int)igraph_vector_int_e(&vec,i),(int)igraph_vector_int_e(&deg,i));
+            fprintf(kcf, "%d\t%s\t%d\t%d\n", i, igraph_cattribute_VAS(&graph, "name", i), (int) VECTOR(vec)[i], (int) VECTOR(deg)[i]);
         }
-
         fclose(kcf);
         igraph_vector_int_destroy(&vec);
         igraph_vector_int_destroy(&deg);
         igraph_destroy(&graph);
     }
 
-    void Kgraph::processGFA(const std::string &dir, bool weight)
-    {
-        std::string gfa_file = dir + "/output.gfa";
-        std::vector<Gfa> link;
-        std::set<uint32_t> u_id;
-        FILE* gfafile = fopen(gfa_file.c_str(),"r");
-        if (gfafile == nullptr) { fileNotFoundError(gfa_file); }
-        char* line = nullptr;
-        size_t len;
-        ssize_t rec;
-        while(rec = getline(&line,&len,gfafile) != -1)
-        {
-            std::vector<std::string> tokens;
-            char* token = strtok(line,"\t");
-            std::string id(token); //store the id
-            uint8_t count = 0;
-            while(token && (count < 4)) // need the first three postions
-            {
-                std::string token = strtok(NULL, "\t");
-                tokens.emplace_back(token);
-                count++;
-            }
-            if(id == "S")
-            {
-                //is a segment!
-                uint32_t ulength = tokens[1].length();
-                if(ulength >= _readlength) {
-                    u_id.insert(std::stoi(tokens[0]));
-                }
-            }
-            else if(id == "L")
-            {
-                //is a link!
-                auto it1 = u_id.find(std::stoi(tokens[0]));
-                auto it2 = u_id.find(std::stoi(tokens[2]));
-
-                if(it1 != u_id.end() && it2 != u_id.end())
-                {
-                    Gfa gfa_link(std::stoi(tokens[0]),std::stoi(tokens[2]),
-                            tokens[1],tokens[3]);
-                    link.emplace_back(gfa_link);
-                }
-
-            }
-            else
-            {   //not important!
-                continue;
-            }
-        }
-        std::set<uint32_t>().swap(u_id);
-        igraph_t graph;
-        igraph_vector_int_t edges;
-        igraph_vector_int_init(&edges,0);
-        for(auto &n : link)
-        {
-            igraph_vector_int_push_back(&edges,n.getFirstUnitig());
-            igraph_vector_int_push_back(&edges,n.getSecondUnitig());
-        }
-        std::vector<Gfa>().swap(link);
-        igraph_create(&graph,&edges,0,0);
-        igraph_vector_int_destroy(&edges);
-        std::string edgelist_file = dir+"/edgelist.txt";
-        FILE* wf = fopen(edgelist_file.c_str(),"w+");
-        igraph_write_graph_edgelist(&graph, wf);
-        fclose(wf);
-        runCore(graph,dir);
-        anomalyDetection(dir, weight);
-    }
-   
     std::map<std::string, std::string> Kgraph::readUnitigsFile(const std::string& inputUnitigs)
     {
         std::map<std::string, std::string> unitigs;
@@ -269,17 +198,17 @@ namespace komb
         size_t len;
         ssize_t read;
        
-        while (read = getline(&line,&len,fp) != -1)
+        while (read = getline(&line, &len, fp) != -1)
         {
             std::string uline(line); 
-            if (uline.substr(0,1) == ">")
+            if (uline.substr(0, 1) == ">")
             {
                 unitig_num = uline.substr(1, uline.find(" ")-1);
+                unitigs[unitig_num] = std::string("");
+            } else {
+                /* Need += to correctly handle multiline FASTA */
+                unitigs[unitig_num] += uline.substr(0, uline.length()-1); 
             }
-            else
-            {
-                unitigs[unitig_num] = uline.substr(0, uline.length()-1);
-            }    
         }    
         return unitigs;
     }
@@ -289,28 +218,27 @@ namespace komb
         std::vector<std::vector<std::string> > kcore_lines;
         std::map<std::string, std::string> unitigs;
         
-        const std::string kcf = dir + "/kcore.txt";
+        const std::string kcf = dir + "/kcore.tsv";
 
         FILE* f = fopen(kcf.c_str(),"r");
         if (f == nullptr) { fileNotFoundError(kcf); }
         char* line = nullptr;
         size_t len;
-        ssize_t read;
+        ssize_t bytes_read;
 
-        while(read = getline(&line,&len,f) != -1)
+        while(bytes_read = getline(&line, &len, f) != -1)
         {
-            std::vector<std::string> cur_line;
-            char* token = strtok(line,"\t");
-            while(token)
-            {
-                std::string cur_token(token);
-                cur_line.emplace_back(cur_token);
-                token = strtok(NULL, "\t");
-            }    
-       
-            //cur_line[1] = cur_line[1].substr(0,cur_line[1].length()-1);
-            cur_line[1].erase(std::remove(cur_line[1].begin(), cur_line[1].end(), '\n'), cur_line[1].end());
-            kcore_lines.emplace_back(cur_line);
+            if (line[0] != '#') {
+                std::vector<std::string> cur_line;
+                char* token = strtok(line,"\t");
+                while(token)
+                {
+                    std::string cur_token(token);
+                    cur_line.emplace_back(cur_token);
+                    token = strtok(NULL, "\t");
+                }    
+                kcore_lines.emplace_back(cur_line);
+            }
         }
  
         unitigs = Kgraph::readUnitigsFile(inputUnitigs);
@@ -320,29 +248,16 @@ namespace komb
         FILE* outf = fopen(cmbf.c_str(),"w+");
         for(uint64_t i = 0; i < kcore_lines.size(); i++)
         {   
-            std::string header = ">Unitig_"+kcore_lines[i][0]+"|"+ kcore_lines[i][1];
+            std::string header = ">Unitig_"+kcore_lines[i][1]+"|"+ kcore_lines[i][2];
             fprintf(outf, "%s\n", header.c_str());
-            auto key = unitigs.find(kcore_lines[i][0]);
+            auto key = unitigs.find(kcore_lines[i][1]);
             if (key != unitigs.end())
             {
                 fprintf(outf, "%s\n", key->second.c_str());
             }
         }
-   
         fclose(outf);
     }
-    
-    void Kgraph::createRER(long long int& vertices, long long int& edges)
-    {
-        /* test igraph random graph generation */                                
-        igraph_t er_rand;                                                  
-        igraph_rng_seed(igraph_rng_default(), 7);                           
-        igraph_erdos_renyi_game(&er_rand, IGRAPH_ERDOS_RENYI_GNM, vertices, edges,0,0); /* bool directed, bool loops */
-        igraph_vector_int_t vec;                                               
-        igraph_vector_int_init(&vec,1);                                        
-        igraph_coreness(&er_rand,&vec, IGRAPH_ALL);                           
-        /* delete the above block to remove igraph random graph test */
-     }
     
     void Kgraph::anomalyDetection(const std::string& dir, bool weight)
     {
