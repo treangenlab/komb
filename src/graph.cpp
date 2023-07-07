@@ -7,6 +7,7 @@
 #include "graph.h"
 #include <omp.h>
 #include <algorithm>
+#include <unordered_set>
 
 using namespace gfa;
 
@@ -165,7 +166,7 @@ namespace komb
         uspair().swap(seen_edge);
     }
 
-    void Kgraph::readEdgeList(const std::string& dir)
+    void Kgraph::readEdgeList(const std::string& dir, const std::string& inputUnitigs)
     {
         std::string edgelist_file = dir+"/edgelist.txt";
         igraph_t graph;
@@ -176,10 +177,13 @@ namespace komb
         fclose(inpf);
         fprintf(stdout, "GraphInfo...\n\tNumber of vertices: %d\n", (int) igraph_vcount(&graph));
         fprintf(stdout, "\tNumber of edges: %d\n", (int) igraph_ecount(&graph));
-        runCore(graph, dir);
+        
+        std::map<std::string, std::string> unitigs = Kgraph::readUnitigsFile(inputUnitigs);
+
+        runCore(graph, dir, unitigs);
     }
 
-    void Kgraph::runCore(igraph_t &graph, const std::string& dir)
+    void Kgraph::runCore(igraph_t &graph, const std::string &dir, std::map<std::string, std::string> &unitigs)
     {
         std::string kcore_file = dir+"/kcore.tsv";
         igraph_vector_int_t coreness, deg;
@@ -195,9 +199,90 @@ namespace komb
             fprintf(kcf, "%d\t%s\t%d\t%d\n", i, igraph_cattribute_VAS(&graph, "name", i), (int) VECTOR(coreness)[i], (int) VECTOR(deg)[i]);
         }
         fclose(kcf);
+        
+        runTruss(graph, dir, coreness, koresize, unitigs); // create truss file
+
         igraph_vector_int_destroy(&coreness);
         igraph_vector_int_destroy(&deg);
         igraph_destroy(&graph);
+    }
+
+    void Kgraph::runTruss(igraph_t &graph, const std::string&dir, igraph_vector_int_t &coreness, int koresize, std::map<std::string, std::string> &unitigs)
+    {
+        igraph_vector_int_t subgraph_nodes, map, invmap;
+
+        igraph_vector_int_init(&subgraph_nodes, 0);
+        igraph_vector_int_init(&map, 0);
+        igraph_vector_int_init(&invmap, 0);
+
+        int K = (int)igraph_vector_int_max(&coreness);
+        for (int i = 0; i < koresize; i++)
+        {
+            // get vector of nodes in maximal core
+            if ((int)igraph_vector_int_get(&coreness, i) == K)
+            {
+                igraph_vector_int_push_back(&subgraph_nodes, i);
+            }
+        }
+        // transform to vertex selector -- just igraph stuff...
+        igraph_vs_t vids;
+        igraph_vs_vector(&vids, &subgraph_nodes);
+
+        fprintf(stdout, "BUILD K-TRUSS:\n");
+        fprintf(stdout, "Selected unitigs in maximal core.\n");
+        
+        // get induced subgraph -- will mess up ids, so mapping required
+        igraph_t subgraph;
+        igraph_induced_subgraph_map(&graph, &subgraph, vids, IGRAPH_SUBGRAPH_AUTO, &map, &invmap);
+        
+        fprintf(stdout, "Succesfully created a K-core subgraph.\n");
+
+        igraph_vector_int_t trussness;
+        igraph_vector_int_init(&trussness, 0);
+        igraph_trussness(&subgraph, &trussness);
+
+        fprintf(stdout, "Computed trussness of edges.\n");
+
+        int trusssize = igraph_vector_int_size(&trussness);
+
+        std::string trussFile = dir + "/truss_unitigs.fasta";
+
+        FILE* trussf = fopen(trussFile.c_str(), "w+");
+
+        std::unordered_set <int> nodes;
+
+        for (int edge = 0; edge < trusssize; edge++)
+        {
+            if (igraph_vector_int_get(&trussness, edge) >= K)
+            {
+                // the nodes of this edge are in the vector, add them to output
+
+                igraph_integer_t from, to;            
+                igraph_edge(&subgraph, edge, &from, &to);
+
+                nodes.insert((int)igraph_vector_int_get(&invmap, from));
+                nodes.insert((int)igraph_vector_int_get(&invmap, to));
+            }
+        }
+        for (int original_node : nodes)
+        {
+            // print to file
+            std::string unitig_header = ">Unitig_"+std::to_string(original_node);
+            fprintf(trussf,"%s\n",unitig_header.c_str());
+            
+            auto key = unitigs.find(std::to_string(original_node));
+            if (key != unitigs.end())
+            {
+                fprintf(trussf,"%s\n", key->second.c_str());
+            }
+        }
+        fprintf(stdout, "%s%d%s%s\n","Found ", (int)nodes.size(), " unitigs in maximal K-truss, saved at ", trussFile.c_str());
+        
+        nodes.clear();
+        igraph_vector_int_destroy(&subgraph_nodes);
+        igraph_vector_int_destroy(&trussness);
+        igraph_vector_int_destroy(&map);
+        igraph_vector_int_destroy(&invmap);
     }
 
     std::map<std::string, std::string> Kgraph::readUnitigsFile(const std::string& inputUnitigs)
