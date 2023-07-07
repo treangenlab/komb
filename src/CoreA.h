@@ -11,54 +11,48 @@
 #include <iostream>
 #include <cstdlib>
 
-
 class CoreA
 {
 
 	public:
+
+		void fileNotFoundError(const std::string& path) {
+			std::cerr << "File " << path << " could not be opened. Exiting..." << std::endl;
+			exit(EXIT_FAILURE);
+    	}
 		
 		std::pair<std::vector<int>, std::vector<int> > readKOMBOutput(const std::string& kcf)
- 		{                                                                      
-                                                                       
-        		std::vector<int> coreness;                                         
-        		std::vector<int> degree;                                           
-                                                                         
-      			FILE* fp = fopen(kcf.c_str(),"r");                                 
-      			if (fp == nullptr) { exit(EXIT_FAILURE);}                          
-      			std::string unitig_num;                                            
-      			char* line = nullptr;                                              
-      			size_t len;                                                        
-      			ssize_t read;                                                      
-      			while (read = getline(&line,&len,fp) != -1)                        
-      			{                                                                  
-          			char* token = strtok(line,"\t"); //ignore                      
-          			int i = 0;                                                     
-          			while (token != NULL)                                          
-          			{                                                                                              
-              				if(i == 2)                                                 
-              				{                                                          
-                  				std::string cur_token(token); // convert to string to easily remove "\n"
-                 				cur_token.erase(std::remove(cur_token.begin(), cur_token.end(), '\n'), cur_token.end());
-                  				degree.emplace_back(stoi(cur_token));                  
-                  				i++;                                                   
-             				}                                                          
-              				if(i == 1)                                                 
-              				{                                                          
-                  				coreness.emplace_back(atoi(token)); // can directly take kcore
-                 				i++;                                                   
-              				}
-					if(i == 0)
-					{
-						i++;	
-					}
-					token = strtok(NULL,"\t"); 
-          			}                                                              
-      			}                                                                  
-                                                                         
-      			fclose(fp);                                                        
-      			//fprintf(stdout,"Size of coreness:%lu\n",coreness.size());          
-      			//fprintf(stdout,"Size of degree:%lu\n",degree.size());              
-      			return std::make_pair(coreness, degree);                           
+ 		{                                                                                     
+			std::vector<int> coreness;                                         
+			std::vector<int> degree;                                           
+																		
+			FILE* fp = fopen(kcf.c_str(), "r");                                 
+			if (fp == nullptr) { fileNotFoundError(kcf); }                          
+			std::string unitig_num;                                            
+			char* line = nullptr;                                              
+			size_t len;                                                        
+			ssize_t read;                                                      
+			while (read = getline(&line,&len,fp) != -1)                        
+			{             
+				if (line[0] != '#') {
+					char* token = strtok(line,"\t"); //ignore                      
+					int i = 0;                                                     
+					while (token != NULL)                                          
+					{                                                                                              
+						if(i == 3)                                                 
+						{                                                          
+							std::string cur_token(token); // convert to string to easily remove "\n"
+							cur_token.erase(std::remove(cur_token.begin(), cur_token.end(), '\n'), cur_token.end());
+							degree.emplace_back(stoi(cur_token));                                                                   
+						}                                                          
+						if(i == 2) { coreness.emplace_back(atoi(token)); } // can directly take kcore
+						i++;
+						token = strtok(NULL,"\t"); 
+					}  
+				}                                                                                                                 
+			}                                                                  
+			fclose(fp);                                                        
+			return std::make_pair(coreness, degree);                           
  		}
 	
 	

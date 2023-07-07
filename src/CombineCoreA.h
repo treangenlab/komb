@@ -11,19 +11,18 @@
 
 class CombineCoreA
 {
-
 	public:
 
 		static void run(igraph_lazy_adjlist_t& al, const std::string& outdir, bool weighted)
 		{
 			double* nodeSuspiciousness = nullptr;
 			CoreA core_a;
-			const std::string kcf = outdir+"/kcore.txt";
-			std::pair<std::vector<int>, std::vector<int> > coreness_and_degree = core_a.readKOMBOutput(kcf);
+			const std::string kcf = outdir+"/kcore.tsv";
+			std::pair<std::vector<int>, std::vector<int>> coreness_and_degree = core_a.readKOMBOutput(kcf);
 			std::vector<int> coreness = coreness_and_degree.first;
 			std::vector<int> degree = coreness_and_degree.second;
 			double dense_ratio = *std::max_element(coreness.begin(), coreness.end()) / 2;
-			fprintf(stdout,"Dense Ratio: %f\n", dense_ratio);
+			fprintf(stdout, "Dense Ratio: %f\n", dense_ratio);
 			int n = degree.size();
 
 			if(weighted)
@@ -32,49 +31,15 @@ class CombineCoreA
 				double max_dmp = *std::max_element(nodeSuspiciousness, nodeSuspiciousness+n);
 				fprintf(stdout,"Max CoreA score: %f\n", max_dmp);
 				double theoretical_weight = dense_ratio  * (1 / max_dmp);
-				//fprintf(stdout,"Theoretical weight: %f\n", theoretical_weight);
 				std::string anomaly_output = outdir+"/CoreA_anomaly.txt";
 				FILE* fp = fopen(anomaly_output.c_str(), "w+");
 				for(int i = 0; i < n; i++)
 				{
-					fprintf(fp,"%d\t%f\n",i,nodeSuspiciousness[i]);
+					fprintf(fp,"%d\t%f\n", i, nodeSuspiciousness[i]);
 				}
 				fclose(fp);
-
-            	    //for(int i=0; i < degree.size(); i++) 
-            	    //{
-                    //	nodeSuspiciousness[i] = theoretical_weight * nodeSuspiciousness[i];
-            	    //}
 			}
-            /***
-			CombineCoreA cca;
-			std::pair<std::vector<int>, std::vector<int> > result = cca.runMerge(al, n, nodeSuspiciousness);
-			std::set<int> anomalies;
-            
-            		for(auto node : result.first) 
-            		{
-                		anomalies.insert(node);
-            		}
-
-            		for(auto node : result.second) 
-            		{
-                		anomalies.insert(node);
-            		}
-
-            		std::string weighted_output = outdir +"/weighted_anomaly_output.txt";
-        		FILE* fp = fopen(weighted_output.c_str(),"w+");
-        		fprintf(fp, "vertex_index\n");
-        	
-        		for(auto node : anomalies) 
-        		{
-        			fprintf(fp,"%d\n",node);
-        		}
-
-        		fclose(fp);
-             ***/
-
-        		free(nodeSuspiciousness);
-
+            free(nodeSuspiciousness);
 		}
 
 		std::pair<std::vector<int>, std::vector<int> > runMerge(igraph_lazy_adjlist_t& al, int& numNodes, double* suspiciousness)
@@ -113,7 +78,7 @@ class CombineCoreA
 					for(int i = 0; i < size; i++)
 					{
 						rowDegree[src] += 1;
-						colDegree[(int)igraph_vector_int_e(vec,i)] += 1;
+						colDegree[(int) VECTOR(*vec)[i]] += 1;
 						edgeNum += 1;
 					}
 				}
@@ -188,7 +153,7 @@ class CombineCoreA
             			{ //remove from rows
                 			for (int i = 0; i < size; i++) 
               				{
-                    				int dst = igraph_vector_int_e(vec,i);
+                    				int dst = VECTOR(*vec)[i];
                     				if (!removed[1][dst]) 
                     				{
                         				colHeap.refreshPriority(dst, colHeap.getPriority(dst) - 1);
@@ -199,7 +164,7 @@ class CombineCoreA
             			{ //remove from columns
             				for (int i = 0; i < size; i++) 
                 			{
-                    				int dst = igraph_vector_int_e(vec,i);
+                    				int dst = VECTOR(*vec)[i];
                     				if (!removed[0][dst]) 
                     				{
                         				rowHeap.refreshPriority(dst, rowHeap.getPriority(dst) - 1);

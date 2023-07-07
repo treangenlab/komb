@@ -261,8 +261,11 @@ int main(int argc, const char** argv)
 
     if (!isBifrost)
     {
+        auto begin_abyss = std::chrono::steady_clock::now();
         runAbyss(reads, kmersize, threads);
-        fprintf(stdout, "Created unitigs from Abyss\n");
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now() - begin_abyss).count() / 1000.0;
+        fprintf(stdout, "Created unitigs from Abyss: %.3f ms\n", duration);
     }
     else
     {
@@ -290,7 +293,11 @@ int main(int argc, const char** argv)
     const std::string fast_x = isFasta ? "-f" : "-q";
 
     /* run bowtie2 */
+    auto begin_bt2 = std::chrono::steady_clock::now();
     runBowtie2(numhits, readlen, reads, outdir, fast_x, kmersize, threads);
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now() - begin_bt2).count() / 1000.0;
+    fprintf(stdout, "Reads mapped with Bt2: %.3f ms\n", duration);
 
     /* run KOMB core */
 
@@ -318,6 +325,7 @@ int main(int argc, const char** argv)
         std::string remove_sam = "rm -rf "+outdir+"/*.sam";
         int return_val = std::system(remove_sam.c_str());
     }
+    auto begin_komb = std::chrono::steady_clock::now();
     vvec edgeinfo = kg.getEdgeInfo(umap1, umap2);
     fprintf(stdout, "Processed edgeinfo\n");
     kg.generateGraph(edgeinfo, outdir);
@@ -330,7 +338,10 @@ int main(int argc, const char** argv)
     fprintf(stdout,"Identified anomalous unitigs\n");
     kg.splitAnomalousUnitigs(outdir, isBifrost);
     fprintf(stdout,"Created anomalouss unitigs file\n");
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now() - begin_komb).count() / 1000000.0;
+    fprintf(stdout, "\nTime elapsed for KOMB: %.3f ms\n", duration);
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::steady_clock::now() - begin).count() / 1000000.0;
     fprintf(stdout, "\nTime elapsed for analysis (sec) = %.2f \n", duration);
         
