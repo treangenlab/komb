@@ -219,8 +219,6 @@ class RunEnvironment():
 
 
     def RunGGCAT(self):
-        global SIGINT
-        
         cmd_str = f"ggcat build \
                     -k {self.args.kmer_size} \
                     -j {self.args.num_threads} \
@@ -248,7 +246,7 @@ class RunEnvironment():
         fstdout, fstderr = p.communicate()
         rc = p.returncode
 
-        if rc != 0 and not SIGINT:
+        if rc != 0:
             self.logger.critical(f"GGCAT failed executing:\n{cmd_str}\n\nSTDOUT:{fstdout}\n\nSTDERR:{fstderr}")
             sys.exit(rc)
         else:
@@ -257,7 +255,6 @@ class RunEnvironment():
 
 
     def RunSeqKit(self):
-        global SIGINT
         # NEED TO ADD COMPUTATION OF L FOR AUTO MODE
         cmd_str = f"seqkit seq \
                     -m {self.args.min_unitig_length} \
@@ -277,7 +274,7 @@ class RunEnvironment():
         fstdout, fstderr = p.communicate()
         rc = p.returncode
 
-        if rc != 0 and not SIGINT:
+        if rc != 0:
             self.logger.critical(f"SeqKit failed executing:\n{cmd_str}\n\nSTDOUT:{fstdout}\n\nSTDERR:{fstderr}")
             sys.exit(rc)
         else:
@@ -286,8 +283,6 @@ class RunEnvironment():
 
 
     def RunBWAIndex(self):
-        global SIGINT
-
         cmd_str = f"bwa index {self.args.output_dir}/unitigs.l{self.args.min_unitig_length}.fasta"
 
         p = subprocess.Popen(
@@ -303,7 +298,7 @@ class RunEnvironment():
         fstdout, fstderr = p.communicate()
         rc = p.returncode
 
-        if rc != 0 and not SIGINT:
+        if rc != 0:
             self.logger.critical(f"BWA index failed executing:\n{cmd_str}\n\nSTDOUT:{fstdout}\n\nSTDERR:{fstderr}")
             sys.exit(rc)
         else:
@@ -312,9 +307,9 @@ class RunEnvironment():
 
 
     def RunBWAMem(self):
-        global SIGINT
         def __bwamem(reads):
             cmd_str = f"bwa mem \
+                        -a \
                         -k {self.args.min_seed_length} \
                         -t {self.args.num_threads} \
                         {self.args.output_dir}/unitigs.l{self.args.min_unitig_length}.fasta \
@@ -334,7 +329,7 @@ class RunEnvironment():
             fstdout, fstderr = p.communicate()
             rc = p.returncode
 
-            if rc != 0 and not SIGINT:
+            if rc != 0:
                 self.logger.critical(f"BWA MEM failed executing:\n{cmd_str}\n\nSTDOUT:{fstdout}\n\nSTDERR:{fstderr}")
                 sys.exit(rc)
             else:
@@ -346,8 +341,6 @@ class RunEnvironment():
 
 
     def RunKOMB(self):
-        global SIGINT
-
         cmd_str = f"{self.PATH_TO_KOMB} \
                     -t {self.args.num_threads} \
                     -l {self.args.min_unitig_length} \
