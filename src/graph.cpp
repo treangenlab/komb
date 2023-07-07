@@ -182,20 +182,20 @@ namespace komb
     void Kgraph::runCore(igraph_t &graph, const std::string& dir)
     {
         std::string kcore_file = dir+"/kcore.tsv";
-        igraph_vector_int_t vec, deg;
-        igraph_vector_int_init(&vec, 1);
+        igraph_vector_int_t coreness, deg;
+        igraph_vector_int_init(&coreness, 1);
         igraph_vector_int_init(&deg, 1);
         igraph_degree(&graph, &deg, igraph_vss_all(), IGRAPH_ALL, IGRAPH_NO_LOOPS);
-        igraph_coreness(&graph, &vec, IGRAPH_ALL);
+        igraph_coreness(&graph, &coreness, IGRAPH_ALL);
         FILE* kcf = fopen(kcore_file.c_str(), "w+");
-        int koresize = igraph_vector_int_size(&vec);
+        int koresize = igraph_vector_int_size(&coreness);
         fprintf(kcf, "#VID\tName\tCoreness\tDegree\n");
         for(int i = 0; i < koresize; i++)
         {
-            fprintf(kcf, "%d\t%s\t%d\t%d\n", i, igraph_cattribute_VAS(&graph, "name", i), (int) VECTOR(vec)[i], (int) VECTOR(deg)[i]);
+            fprintf(kcf, "%d\t%s\t%d\t%d\n", i, igraph_cattribute_VAS(&graph, "name", i), (int) VECTOR(coreness)[i], (int) VECTOR(deg)[i]);
         }
         fclose(kcf);
-        igraph_vector_int_destroy(&vec);
+        igraph_vector_int_destroy(&coreness);
         igraph_vector_int_destroy(&deg);
         igraph_destroy(&graph);
     }
