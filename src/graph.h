@@ -35,7 +35,7 @@ namespace komb
     public:
         Kgraph(uint32_t threads);
         Kgraph(uint32_t threads, uint64_t readlength);
-        void readSAM(const std::string &samfile, umapset &umap);
+        void readSAM(const std::string &samfile, umapset &umap, bool fulgor);
         vvec getEdgeInfo(umapset &umap1, umapset &umap2);
         void generateGraph(vvec &vec, const std::string& dir);
         void readEdgeList(const std::string& dir);

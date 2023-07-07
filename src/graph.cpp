@@ -28,7 +28,7 @@ namespace komb
         exit(EXIT_FAILURE);
     }
 
-    void Kgraph::readSAM(const std::string &samfile, umapset &umap)
+    void Kgraph::readSAM(const std::string &samfile, umapset &umap, bool fulgor)
     {
         FILE* f = fopen(samfile.c_str(), "r");
         if (f == nullptr) { fileNotFoundError(samfile); }
@@ -38,19 +38,32 @@ namespace komb
 
         while(bytes_read = getline(&line, &len, f) != -1)
         {
-            if(line[0] != '@')
-            {
+            if (!fulgor) {
+                if(line[0] != '@')
+                {
+                    char* token = strtok(line, "\t");
+                    std::string read(token);
+                    uint8_t count = 0;
+                    while(token && (count < 2))
+                    {
+                        token = strtok(NULL, "\t");
+                        count++;
+                    }
+                    std::string unitig(token);
+                    if (unitig.compare("*") != 0) {  // '*' indicates an unmapped read in SAM
+                        umap[read.substr(1, read.find('/'))].insert(unitig);
+                    }
+                }
+            } else {
                 char* token = strtok(line, "\t");
                 std::string read(token);
-                uint8_t count = 0;
-                while(token && (count < 2))
-                {
+                token = strtok(NULL, "\t");
+                uint32_t count = std::stoi(token);
+                for(uint32_t i = 0; i < count; i++) {
                     token = strtok(NULL, "\t");
-                    count++;
-                }
-                std::string unitig(token);
-                if (unitig.compare("*") != 0) {  // '*' indicates an unmapped read in SAM
-                    umap[read.substr(1, read.find('/'))].insert(unitig);
+                    std::string unitig_id(token);
+                    unitig_id.erase(std::remove(unitig_id.begin(), unitig_id.end(), '\n'), unitig_id.cend());
+                    umap[read.substr(0, read.find('/'))].insert(unitig_id);
                 }
             }
         }

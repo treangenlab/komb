@@ -52,6 +52,8 @@ int main(int argc, const char** argv)
     TCLAP::ValueArg<std::string> outputArg("o", "output",
        "Output directory [Default: output_yyyymmdd_hhmmss]", false, dirname,
        "string");
+    TCLAP::SwitchArg fulgorSwitch("f", "fulgor",
+       "Use Fulgor pseudoalignments instead of SAM files", cmd, false);
     cmd.add(inputArg);
     cmd.add(input2Arg);
     cmd.add(inputUnitigsArg);
@@ -68,16 +70,17 @@ int main(int argc, const char** argv)
     const std::string inputUnitigs = inputUnitigsArg.getValue();
     const int readlen = readlenArg.getValue();
     int threads = threadsArg.getValue();
+    bool fulgor = fulgorSwitch.getValue();
 
     const bool isBifrost = false;
 
-    /* create output dir */
-    const std::string create_dir = "mkdir " + outdir;
-    int return_val = std::system(create_dir.c_str());
-    if (return_val != 0) { 
-      std::cerr << "Could not create output directory: " << create_dir << ". Exiting..." << std::endl;
-      exit(EXIT_FAILURE);
-    }
+   /* create output dir */
+   //  const std::string create_dir = "mkdir " + outdir;
+   //  int return_val = std::system(create_dir.c_str());
+   //  if (return_val != 0) { 
+   //    std::cerr << "Could not create output directory: " << create_dir << ". Exiting..." << std::endl;
+   //    exit(EXIT_FAILURE);
+   //  }
 
     /* run KOMB core */
     igraph_set_attribute_table(&igraph_cattribute_table);  // to correctly handle arbitrary unitig names
@@ -89,11 +92,10 @@ int main(int argc, const char** argv)
         #pragma omp single
         {
             //#pragma omp task
-            kg.readSAM(input, umap1);
+            kg.readSAM(input, umap1, fulgor);
             //#pragma omp task
-            kg.readSAM(input2, umap2);
+            kg.readSAM(input2, umap2, fulgor);
         }
-
     }
 
    //  fprintf(stdout, "Read SAM files\n");
