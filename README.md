@@ -1,26 +1,25 @@
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/komb/README.html) [![Anaconda-Server Badge](https://anaconda.org/bioconda/komb/badges/installer/conda.svg)](https://conda.anaconda.org/bioconda) [![Anaconda-Server Badge](https://anaconda.org/bioconda/komb/badges/downloads.svg)](https://anaconda.org/bioconda/komb) [![Anaconda-Server Badge](https://anaconda.org/bioconda/komb/badges/platforms.svg)](https://anaconda.org/bioconda/komb) [![Anaconda-Server Badge](https://anaconda.org/bioconda/komb/badges/latest_release_date.svg)](https://anaconda.org/bioconda/komb)
 
 
-![alt text](Images/Images_Logo.png)
+![KOMB Logo](Images/Images_Logo.png)
 ## KOMB
 #### Welcome to the KOMB repo! Get ready to KOMB through your (large) metagenomes to find regions of biological (functional or taxonomic) interest!
-#### KOMB version: KOMB V1.0.
-   
-### **Please go through the [KOMB Gitlab Wiki](https://gitlab.com/treangenlab/komb/-/wikis/0.-Contents) for more information and documentation on KOMB.**
-
-#### Validation experiments on randome genome backbones can be reproduced by running the code in the branch [biorxiv2020](https://gitlab.com/treangenlab/komb/-/tree/biorxiv2020) which contains the same algorithm but different unitig filtering options.
+#### KOMB version: 2.0.0
 
 ## KOMB installation
 
-KOMB can be installed through source or bioconda (recommended). Please refer to the wiki for additional instructions. Both installations should take less than 5 minutes. KOMB has been tested on OSX and Linux. We also recommend installing komb in a seperate conda environment in your system as follows:      
-`conda create -n komb python=3.7 komb`
+Current version of KOMB has to be installed from source. It has only been tested on Linux systems. 
 
-## KOMB example
+In order to install KOMB you will need to install several dependencies first. We recommend using conda for managing KOMB dependencies. Below is an example of installing required tools with conda.
+
+```
+
+```
+
+## Quickstart example
 
 You can test KOMB by running the following command:    
 `komb -r example/2bact_42.read1.fq,example/2bact_42.read2.fq -k 51 -l 100 -t 10`    
-
-The output and runtime/memory requirements on the server used in the paper can be found [here](https://rice.box.com/s/mpbmgltih6dvxglfscozr8u6xzfwqq5q)
 
 ## KOMB usage
 Installation will create  an executable `komb` inside it. Once the binary is obtained you can add it to path for ease of use. Users can run KOMB as follows using various command line options.
