@@ -28,7 +28,8 @@ class RunEnvironment():
         self.CURRTIME = datetime.today().strftime('%H:%M:%S')
         self.args     = self.parse_args()
         self.logger   = self.logging_setup()
-        self.PATH_TO_KOMB = "/home/Users/ns58/KOMB2/komb/src/komb2"
+
+        self.PATH_TO_KOMB = os.getcwd() + "/src/komb2"
         
         try:
             os.mkdir(self.args.output_dir)
