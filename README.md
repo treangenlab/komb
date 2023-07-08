@@ -1,80 +1,92 @@
-[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/komb/README.html) [![Anaconda-Server Badge](https://anaconda.org/bioconda/komb/badges/installer/conda.svg)](https://conda.anaconda.org/bioconda) [![Anaconda-Server Badge](https://anaconda.org/bioconda/komb/badges/downloads.svg)](https://anaconda.org/bioconda/komb) [![Anaconda-Server Badge](https://anaconda.org/bioconda/komb/badges/platforms.svg)](https://anaconda.org/bioconda/komb) [![Anaconda-Server Badge](https://anaconda.org/bioconda/komb/badges/latest_release_date.svg)](https://anaconda.org/bioconda/komb)
-
-
-![alt text](Images/Images_Logo.png)
+![KOMB Logo](Images/Images_Logo.png)
 ## KOMB
 #### Welcome to the KOMB repo! Get ready to KOMB through your (large) metagenomes to find regions of biological (functional or taxonomic) interest!
-#### KOMB version: KOMB V1.0.
-   
-### **Please go through the [KOMB Gitlab Wiki](https://gitlab.com/treangenlab/komb/-/wikis/0.-Contents) for more information and documentation on KOMB.**
-
-#### Validation experiments on randome genome backbones can be reproduced by running the code in the branch [biorxiv2020](https://gitlab.com/treangenlab/komb/-/tree/biorxiv2020) which contains the same algorithm but different unitig filtering options.
+#### KOMB version: 2.0.0
 
 ## KOMB installation
 
-KOMB can be installed through source or bioconda (recommended). Please refer to the wiki for additional instructions. Both installations should take less than 5 minutes. KOMB has been tested on OSX and Linux. We also recommend installing komb in a seperate conda environment in your system as follows:      
-`conda create -n komb python=3.7 komb`
+Current version of KOMB has to be installed from source. It has only been tested on Linux systems. 
 
-## KOMB example
+In order to install KOMB you will need to install several dependencies first. We recommend using `conda` ([Miniconda download](https://docs.conda.io/en/latest/miniconda.html)) for managing KOMB dependencies. Below is an example of installing required tools with `conda`.
+
+1. Create a new `conda` environment and make sure that `conda-forge` and `bioconda` channels are enabled.
+```
+conda create --name komb-env python=3.9
+conda config --add channels conda-forge
+conda config --add channels bioconda
+```
+2. Install dependencies
+```
+conda install ggcat
+conda install bwa
+conda install seqkit
+conda install igraph=0.10.4
+```
+Note: we have upgraded KOMB to be compatible with newer version of the [igraph library](https://igraph.org/c/) which means that the versions 0.8.3 and older no longer will work. We hope that igraph API will stay consitent goign forward, but we have no way to ensure that.
+3. Clone the repo and buidl source code
+```
+git clone https://gitlab.com/treangenlab/komb.git.
+cd komb 
+./autogen.sh
+./configure
+make 
+```
+4. Now you will have a `komb2` executable in the `komb/src` directory and you should be able to run `KOMB.py` in order to run the complete KOMB pipeline.
+
+## Quickstart example
 
 You can test KOMB by running the following command:    
-`komb -r example/2bact_42.read1.fq,example/2bact_42.read2.fq -k 51 -l 100 -t 10`    
+`KOMB.py -i example_data/reads1.fastq -j example_data/reads2.fastq -k 51`
 
-The output and runtime/memory requirements on the server used in the paper can be found [here](https://rice.box.com/s/mpbmgltih6dvxglfscozr8u6xzfwqq5q)
+Example data is hosted on OSF at the following URL: [ADD URL] and on Zenodo under DOI: [ADD DOI].
 
 ## KOMB usage
-Installation will create  an executable `komb` inside it. Once the binary is obtained you can add it to path for ease of use. Users can run KOMB as follows using various command line options.
+Full set of parameters available in the KOMB pipeline is shown below and can be accessed by running `python KOMB.py --help`.
 
 ```
-USAGE: 
+usage: KOMB.py [-h] -i INPUT_READS1 -j INPUT_READS2 [-o OUTPUT_DIR] [--keep-alignments] [-e LOG_FILE] [--overwrite] -k KMER_SIZE [-t NUM_THREADS] [-l MIN_UNITIG_LENGTH] [-v VERBOSITY] [-c MIN_COUNT]
+               [-m GGCAT_MEMORY] [--eulertigs | --greedy-matchtigs | --pathtigs] [--min-seed-length MIN_SEED_LENGTH]
 
-   komb  [-o <string>] [-t <int>] [-k <int>] [-n <int>] [-l <int>] -r
-               <string> [-a] [-f] [-b] [-s] [--] [--version] [-h]
+KOMB Analysis Pipeline example: python KOMB.py -i <read1.fq> -j <read2.fq> -k <k-mer size> -t <threads>
 
+optional arguments:
+  -h, --help            show this help message and exit
+  --eulertigs           Generate Eulertigs instead of unitigs
+  --greedy-matchtigs    Generate greedy matchtigs instead of unitigs
+  --pathtigs            Generate pathtigs instead of unitigs
 
-Where: 
+Input/Output:
+  -i INPUT_READS1, --input-reads1 INPUT_READS1
+                        Path to the first sequencing reads file for paired-end data in FASTQ format
+  -j INPUT_READS2, --input-reads2 INPUT_READS2
+                        Path to the second sequencing reads file for paired-end data in FASTQ format
+  -o OUTPUT_DIR, --output-dir OUTPUT_DIR
+                        Path to the first sequencing reads file for paired-end data in FASTQ format
+  --keep-alignments     Keep SAM files after the graph has been constructed (might require a lot of disk space)
+  -e LOG_FILE, --log-file LOG_FILE
+                        File for logging [default: stdout]
+  --overwrite           Delete <output-dir> and create a new one in case it exists
 
-   -o <string>,  --output <string>
-     Output directory [Default: output_yyyymmdd_hhmmss]
+Common arguments:
+  -k KMER_SIZE, --kmer-size KMER_SIZE
+                        k-mer size used for the *tig construction and subsequent analyses
+                        use -1 to let KOMB automatically pick a value [default: -1]
+  -t NUM_THREADS, --num-threads NUM_THREADS
+                        Maximum number of threads you want programs to use, note that some might use less than the amount specified
+  -l MIN_UNITIG_LENGTH, --min-unitig-length MIN_UNITIG_LENGTH
+                        Minimum length of a unitig to be kept for the analysis.
+                        Value -1 indicates setting this to the read length [default]
+                        Value 0 would result in keeping all unitigs, and values > 0 will apply the filter
+  -v VERBOSITY, --verbosity VERBOSITY
+                        Logging level: 0 (DEBUG), 1 (INFO), 2 (ERROR)
 
-   -t <int>,  --threads <int>
-     Number of Threads [Default: Max]
+GGCAT *tig construction:
+  -c MIN_COUNT, --min-count MIN_COUNT
+                        Minimum count required to keep a kmer [default: 2]
+  -m GGCAT_MEMORY, --ggcat-memory GGCAT_MEMORY
+                        Maximum memory usage for GGCAT (GB) [default: 8]
 
-   -k <int>,  --kmer <int>
-     Kmer size for Abyss, Bifrost uses 31 [Default: 31]
-
-   -n <int>,  --numhits <int>
-     Bowtie2 maximum number of hits [Default: 1000]
-
-   -l <int>,  --readlen <int>
-     Read Length (can be average) [Default: 100]
-
-   -r <string>,  --reads <string>
-     (required)  Paired-read file separated by ',' [Default: read1.fq
-     ,read2.fq]
-
-   -a,  --alignment
-     Keep alignment files [Default: delete alignment]
-
-   -f,  --fasta
-     Reads provided are fasta files [Default: fastq]
-
-   -b,  --bifrost
-     Run bifrost instead of abyss [Default: run abyss]
-
-   -s,  --spades
-     Runs spades and uses GFA graph instead of bifrost + bowtie2 [Default:
-     run abyss]
-
-   --,  --ignore_rest
-     Ignores the rest of the labeled arguments following this flag.
-
-   --version
-     Displays version information and exits.
-
-   -h,  --help
-     Displays usage information and exits.
-
-
-   KOMB: Taxonomy-oblivious characterization of metagenome dynamics
-   ```
+BWA MEM parameters:
+  --min-seed-length MIN_SEED_LENGTH
+                        Minimum seed length. Matches shorter than the value will be missed.
+```
