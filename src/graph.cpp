@@ -178,12 +178,8 @@ namespace komb
         fclose(inpf);
         fprintf(stdout, "GraphInfo...\n\tNumber of vertices: %d\n", (int) igraph_vcount(&graph));
         fprintf(stdout, "\tNumber of edges: %d\n", (int) igraph_ecount(&graph));
-
-        fprintf(stdout, "Got to stage 1\n");
         
         std::map<std::string, std::string> unitigs = Kgraph::readUnitigsFile(inputUnitigs);
-
-        fprintf(stdout, "Got to stage 2\n");
 
         runCore(graph, dir, unitigs);
     }
