@@ -42,8 +42,13 @@ jobs:
       run: ./autogen.sh
     - name: Run configure
       run: ./configure
-    - name: Run make
+    - name: Run make (macOS)
+      if: runner.os == 'macOS'
+      run: make CC=/usr/local/opt/llvm/bin/clang CXX=/usr/local/opt/llvm/bin/clang++
+    - name: Run make (linux)
+      if: runner.os == 'linux'
       run: make
+      
     
   get-sample-data:
     name: Download sample data
