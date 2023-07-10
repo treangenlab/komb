@@ -9,7 +9,15 @@ on:
 jobs:
   build:
     name: Build KOMB-core executable
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    strategy:
+          fail-fast: false
+          matrix:
+            os: [ubuntu-latest, macos-latest]
 
     steps:
     - uses: actions/checkout@v3
@@ -40,10 +48,20 @@ jobs:
     
   test-driver:
     name: Test Python driver script
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     needs: [build, get-sample-data]
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    strategy:
+          fail-fast: false
+          matrix:
+            os: [ubuntu-latest, macos-latest]
     
     steps:
+    - name: activate komb2-env
+      run: conda activate komb2-env
     - name: Run KOMB.py
       run: |
            cd $GITHUB_WORKSPACE/komb

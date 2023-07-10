@@ -1,4 +1,4 @@
-AC_INIT([komb],[0.0.0])
+AC_INIT([komb2],[2.0.0])
 AM_INIT_AUTOMAKE
 AC_PROG_CXX([g++-10])
 AC_LANG(C++)
