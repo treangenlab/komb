@@ -50,18 +50,18 @@ jobs:
       run: make
     - name: Download data
       run: |
-           mkdir $GITHUB_WORKSPACE/Data;
-           cd $GITHUB_WORKSPACE/Data;
+           mkdir Data;
+           cd Data;
            wget https://rice.box.com/shared/static/jp7wf4x1e5wt83ta4lnig8s42s0sou9p.gz;
            tar -xvf jp7wf4x1e5wt83ta4lnig8s42s0sou9p.gz;
     - name: Run KOMB.py
-      run: python KOMB.py -i $GITHUB_WORKSPACE/Data/copyful.e.test0_R1.fastq \
-                          -j $GITHUB_WORKSPACE/Data/copyful.e.test0_R1.fastq \
-                          -k 35 \
-                          -o example_output_0 \
-                          -e example_logfile_0.log \
-                          -v 0 \
-                          -t 4 \
+      run: python KOMB.py -i Data/copyful.e.test0_R1.fastq 
+                          -j Data/copyful.e.test0_R1.fastq 
+                          -k 35 
+                          -o example_output_0 
+                          -e example_logfile_0.log 
+                          -v 0 
+                          -t 4 
                           -c 1
                           
     - name: Check KOMB output
