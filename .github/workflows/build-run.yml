@@ -48,44 +48,12 @@ jobs:
     - name: Run make (linux)
       if: runner.os == 'linux'
       run: make
-      
-    
-  get-sample-data:
-    name: Download sample data
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash -l {0}
-
-    strategy:
-          fail-fast: false
-          matrix:
-            os: [ubuntu-latest, macos-latest]
-    
-    steps:
     - name: Download data
       run: |
            mkdir $GITHUB_WORKSPACE/Data;
            cd $GITHUB_WORKSPACE/Data;
            wget https://rice.box.com/shared/static/jp7wf4x1e5wt83ta4lnig8s42s0sou9p.gz;
            tar -xvf jp7wf4x1e5wt83ta4lnig8s42s0sou9p.gz;
-    
-  test-driver:
-    name: Test Python driver script
-    runs-on: ${{ matrix.os }}
-    needs: [build, get-sample-data]
-    defaults:
-      run:
-        shell: bash -l {0}
-
-    strategy:
-          fail-fast: false
-          matrix:
-            os: [ubuntu-latest, macos-latest]
-    
-    steps:
-    - name: activate komb2-env
-      run: conda activate komb2-env
     - name: Run KOMB.py
       run: |
            cd $GITHUB_WORKSPACE/komb
