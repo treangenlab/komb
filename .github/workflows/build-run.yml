@@ -65,7 +65,7 @@ jobs:
            tar -xvf jp7wf4x1e5wt83ta4lnig8s42s0sou9p.gz;
     - name: Run KOMB.py
       run: python KOMB.py -i Data/copyful.e.test0_R1.fastq 
-                          -j Data/copyful.e.test0_R1.fastq 
+                          -j Data/copyful.e.test0_R2.fastq 
                           -k 35 
                           -o example_output_0 
                           -e example_logfile_0.log 
