@@ -16,10 +16,9 @@ jobs:
     - name: Setup Miniconda
       uses: conda-incubator/setup-miniconda@v2.2.0
       with:
-        environment-file: $GITHUB_WORKSPACE/komb/komb.yml
+        environment-file: ./komb.yml
         activate-environment: komb2-env
         python-version: 3.9
-    - run: cd $GITHUB_WORKSPACE/komb
     - name: Run autogen
       run: ./autogen.sh
     - name: Run configure
