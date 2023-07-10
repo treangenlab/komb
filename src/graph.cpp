@@ -255,20 +255,31 @@ namespace komb
         FILE* trussf = fopen(trussFile.c_str(), "w+");
 
         std::unordered_set <int> nodes;
+        int threshold = K;
 
-        for (int edge = 0; edge < trusssize; edge++)
+        while (nodes.empty())
         {
-            if (igraph_vector_int_get(&trussness, edge) >= K)
+            for (int edge = 0; edge < trusssize; edge++)
             {
-                // the nodes of this edge are in the vector, add them to output
+                if (igraph_vector_int_get(&trussness, edge) >= threshold)
+                {
+                    // the nodes of this edge are in the vector, add them to output
 
-                igraph_integer_t from, to;            
-                igraph_edge(&subgraph, edge, &from, &to);
+                    igraph_integer_t from, to;            
+                    igraph_edge(&subgraph, edge, &from, &to);
 
-                nodes.insert((int)igraph_vector_int_get(&invmap, from));
-                nodes.insert((int)igraph_vector_int_get(&invmap, to));
+                    nodes.insert((int)igraph_vector_int_get(&invmap, from));
+                    nodes.insert((int)igraph_vector_int_get(&invmap, to));
+                }
+            }
+            // decrement threshold, in case current truss is empty
+            threshold--;
+            if (threshold <= 4)
+            {
+                break;
             }
         }
+
         for (int original_node : nodes)
         {
             // print to file
@@ -281,7 +292,7 @@ namespace komb
                 fprintf(trussf,"%s\n", key->second.c_str());
             }
         }
-        fprintf(stdout, "%s%d%s%s\n","Found ", (int)nodes.size(), " unitigs in maximal K-truss, saved at ", trussFile.c_str());
+        fprintf(stdout, "%s%d%s%d%s%s\n","Found ", (int)nodes.size(), " unitigs in ", threshold+1,"-truss, saved at ", trussFile.c_str());
         
         nodes.clear();
         igraph_vector_int_destroy(&subgraph_nodes);
