@@ -29,7 +29,10 @@ jobs:
         python-version: 3.9
     - name: Install autotools
       if: runner.os == 'macOS'
-      run: brew install autoconf automake libtool
+      run: |
+            brew install autoconf automake libtool
+            brew install llvm libomp
+            export CC=/usr/local/opt/llvm/bin/clang
     - name: Run autogen
       run: ./autogen.sh
     - name: Run configure
