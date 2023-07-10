@@ -21,6 +21,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - uses: brndnmtthws/rust-action-rustup@v1
+      with:
+        toolchain: nightly
+    - name: Installing GGCAT
+      run: |
+            git clone https://github.com/algbio/ggcat --recursive
+            cd ggcat/
+            cargo install --path crates/cmdline/ --locked
+            export PATH="$PATH:$HOME/.cargo/bin"
     - name: Setup Miniconda
       uses: conda-incubator/setup-miniconda@v2.2.0
       with:
