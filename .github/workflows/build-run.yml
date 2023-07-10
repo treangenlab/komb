@@ -36,7 +36,15 @@ jobs:
     
   get-sample-data:
     name: Download sample data
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    strategy:
+          fail-fast: false
+          matrix:
+            os: [ubuntu-latest, macos-latest]
     
     steps:
     - name: Download data
