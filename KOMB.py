@@ -28,8 +28,11 @@ class RunEnvironment():
         self.CURRTIME = datetime.today().strftime('%H:%M:%S')
         self.args     = self.parse_args()
         self.logger   = self.logging_setup()
-        self.PATH_TO_KOMB = "/home/Users/ns58/KOMB2/komb/src/komb2"
+        self.PATH_TO_KOMB = self.get_path_to_komb()
         
+        if not self.PATH_TO_KOMB:
+            sys.exit("Komb executable cannot be located, please add executable to $PATH or current directory.")
+
         try:
             os.mkdir(self.args.output_dir)
         except OSError as exc:
@@ -39,10 +42,49 @@ class RunEnvironment():
             elif exc.errno == errno.EEXIST:
                 self.log(f"File or directory {self.args.output_dir} already exists and will be deleted.", 
                          logging.WARNING)
-                if not self.args.log_file in ["stdout", "stderr"]:
+                if self.args.log_file not in ["stdout", "stderr"]:
                     os.remove(self.args.log_file)
                 shutil.rmtree(self.args.output_dir)
                 os.mkdir(self.args.output_dir)
+
+
+    def get_path_to_komb(self):
+        # First try to locate in PATH:
+        try:
+            result = subprocess.run(['which', 'komb2'], capture_output=True, text=True, check=True)
+            komb2_path = result.stdout.strip()
+            return komb2_path
+        except subprocess.CalledProcessError:
+            self.log("Komb executable not in $PATH, looking for the executable in the directory.", logging.WARNING)
+
+        # Try to locate in src subdirectory:
+        current_directory = os.getcwd()
+        komb_directory = os.path.join(current_directory, 'src')
+        komb2_path = os.path.join(komb_directory, 'komb2')
+        if os.path.exists(komb_directory) and os.path.isfile(komb2_path):
+            return komb2_path
+
+        # Execute custom command to search for komb2 executable
+        if os.name == 'posix':
+            try:
+                command = "find / -type f -name komb2 2>/dev/null"
+                process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+                output, _ = process.communicate()
+                output = output.decode().strip().split('\n')
+                if output:
+                    komb2_path = output[0]
+                    self.log(f"Using komb2 executable found at {komb2_path}. If this is the wrong one, " \
+                            + "please add the correct executable to the $PATH", logging.WARNING)
+                    return komb2_path
+                else:
+                    self.log("Failed to find komb2 executable. Exiting...", logging.CRITICAL)
+                    exit(-1)
+            except FileNotFoundError:
+                self.log("Failed to find komb2 executable. Exiting...", logging.CRITICAL)
+                exit(-1)
+
+        # Worst case scenario
+        return None
 
 
     def setup(self):
