@@ -79,7 +79,10 @@ jobs:
       with:
         files: "example_output_0/kcore.tsv" 
         fail: true
-        
-    - name: Output was created succesfully
-      if: steps.check_files.outputs.files_exists == 'true'
-      run: echo KOMB output file `kcore.tsv` exists!
+    
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: komb-out-and-log
+        path: example_*
+        retention-days: 5
