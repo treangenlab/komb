@@ -1,0 +1,69 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    name: Build KOMB-core executable
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup Miniconda
+      uses: conda-incubator/setup-miniconda@v2.2.0
+      with:
+        environment-file: ./komb.yml
+        activate-environment: komb2-env
+        python-version: 3.9
+    - run: cd ./komb
+    - name: Run autogen
+      run: ./autogen.sh
+    - name: Run configure
+      run: ./configure
+    - name: Run make
+      run: make
+    
+  get-sample-data:
+    name: Download sample data
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Download data
+      run: |
+           mkdir ~/Data;
+           cd ~/Data;
+           wget https://rice.box.com/shared/static/jp7wf4x1e5wt83ta4lnig8s42s0sou9p.gz;
+           tar -xvf jp7wf4x1e5wt83ta4lnig8s42s0sou9p.gz;
+    
+  test-driver:
+    name: Test Python driver script
+    runs-on: ubuntu-latest
+    needs: [build, get-sample-data]
+    
+    steps:
+    - name: Run KOMB.py
+      run: |
+           cd komb
+           python KOMB.py -i ~/Data/copyful.e.test0_R1.fastq \
+                          -j ~/Data/copyful.e.test0_R1.fastq \
+                          -k 35 \
+                          -o example_output_0 \
+                          -e example_logfile_0.log \
+                          -v 0 \
+                          -t 4 \
+                          -c 1
+                          
+    - name: Check KOMB output
+      id: check_files
+      uses: andstor/file-existence-action@v2.0.0
+      with:
+        files: "komb/example_output_0/kcore.tsv" 
+        fail: true
+        
+    - name: Output was created succesfully
+      if: steps.check_files.outputs.files_exists == 'true'
+      run: echo KOMB output file `kcore.tsv` exists!
