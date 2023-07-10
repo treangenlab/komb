@@ -28,7 +28,7 @@ jobs:
         activate-environment: komb2-env
         python-version: 3.9
     - name: Install autotools
-      if: ${{ matrix.os }} == 'macos-latest'
+      if: runner.os == 'macOS'
       run: brew install autoconf automake libtool
     - name: Run autogen
       run: ./autogen.sh
