@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: Build and run basic tests for KOMB-core and KOMB.py
 
 on:
   push:
@@ -16,10 +16,10 @@ jobs:
     - name: Setup Miniconda
       uses: conda-incubator/setup-miniconda@v2.2.0
       with:
-        environment-file: ./komb.yml
+        environment-file: $GITHUB_WORKSPACE/komb/komb.yml
         activate-environment: komb2-env
         python-version: 3.9
-    - run: cd ./komb
+    - run: cd $GITHUB_WORKSPACE/komb
     - name: Run autogen
       run: ./autogen.sh
     - name: Run configure
@@ -34,8 +34,8 @@ jobs:
     steps:
     - name: Download data
       run: |
-           mkdir ~/Data;
-           cd ~/Data;
+           mkdir $GITHUB_WORKSPACE/Data;
+           cd $GITHUB_WORKSPACE/Data;
            wget https://rice.box.com/shared/static/jp7wf4x1e5wt83ta4lnig8s42s0sou9p.gz;
            tar -xvf jp7wf4x1e5wt83ta4lnig8s42s0sou9p.gz;
     
@@ -47,9 +47,9 @@ jobs:
     steps:
     - name: Run KOMB.py
       run: |
-           cd komb
-           python KOMB.py -i ~/Data/copyful.e.test0_R1.fastq \
-                          -j ~/Data/copyful.e.test0_R1.fastq \
+           cd $GITHUB_WORKSPACE/komb
+           python KOMB.py -i $GITHUB_WORKSPACE/Data/copyful.e.test0_R1.fastq \
+                          -j $GITHUB_WORKSPACE/Data/copyful.e.test0_R1.fastq \
                           -k 35 \
                           -o example_output_0 \
                           -e example_logfile_0.log \
@@ -61,7 +61,7 @@ jobs:
       id: check_files
       uses: andstor/file-existence-action@v2.0.0
       with:
-        files: "komb/example_output_0/kcore.tsv" 
+        files: "$GITHUB_WORKSPACE/komb/example_output_0/kcore.tsv" 
         fail: true
         
     - name: Output was created succesfully
