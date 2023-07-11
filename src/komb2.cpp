@@ -105,7 +105,7 @@ int main(int argc, const char** argv)
    //  fprintf(stdout, "Processed edgeinfo\n");
     kg.generateGraph(edgeinfo, outdir);
    //  fprintf(stdout, "Created edgelist\n");
-    kg.readEdgeList(outdir);
+    kg.readEdgeList(outdir, inputUnitigs);
     fprintf(stdout, "Created Kcore\n");
     kg.combineFile(outdir, inputUnitigs);
     //int weight = 10; /* fix weight as 10 for now */
