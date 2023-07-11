@@ -229,14 +229,14 @@ namespace komb
         igraph_vs_t vids;
         igraph_vs_vector(&vids, &subgraph_nodes);
 
-        fprintf(stdout, "BUILD K-TRUSS:\n");
+        fprintf(stdout, "BUILDING K-TRUSS:\n");
         fprintf(stdout, "Selected unitigs in maximal core.\n");
         
         // get induced subgraph -- will mess up ids, so mapping required
         igraph_t subgraph;
         igraph_induced_subgraph_map(&graph, &subgraph, vids, IGRAPH_SUBGRAPH_AUTO, &map, &invmap);
         
-        fprintf(stdout, "Succesfully created a K-core subgraph.\n");
+        fprintf(stdout, "%s%d%s\n", "Succesfully created a ", K, "-core subgraph.");
 
         igraph_vector_int_t trussness;
         igraph_vector_int_init(&trussness, 0);
@@ -251,7 +251,7 @@ namespace komb
         FILE* trussf = fopen(trussFile.c_str(), "w+");
 
         std::unordered_set <int> nodes;
-        int threshold = K;
+        int threshold = (int)igraph_vector_int_max(&trussness);
 
         while (nodes.empty())
         {
