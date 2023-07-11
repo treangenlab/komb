@@ -22,7 +22,7 @@ conda install bwa
 conda install seqkit
 conda install igraph=0.10.4
 ```
-Note: we have upgraded KOMB to be compatible with newer version of the [igraph library](https://igraph.org/c/) which means that the versions 0.8.3 and older no longer will work. We hope that igraph API will stay consitent goign forward, but we have no way to ensure that.
+Note: we have upgraded KOMB to be compatible with newer version of the [igraph library](https://igraph.org/c/) which means that the versions 0.8.3 and older no longer will work. We hope that igraph API will stay consitent going forward, but we have no way to ensure that.
 3. Clone the repo and buidl source code
 ```
 git clone https://gitlab.com/treangenlab/komb.git.

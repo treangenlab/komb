@@ -1,0 +1,88 @@
+name: Build and run basic tests for KOMB-core and KOMB.py
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    name: Build KOMB-core executable
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    strategy:
+          fail-fast: false
+          matrix:
+            os: [ubuntu-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: brndnmtthws/rust-action-rustup@v1
+      with:
+        toolchain: nightly
+    - name: Installing GGCAT
+      run: |
+            git clone https://github.com/algbio/ggcat --recursive
+            cd ggcat/
+            cargo install --path crates/cmdline/ --locked
+            export PATH="$PATH:$HOME/.cargo/bin"
+    - name: Setup Miniconda
+      uses: conda-incubator/setup-miniconda@v2.2.0
+      with:
+        environment-file: ./komb.yml
+        activate-environment: komb2-env
+        python-version: 3.9
+    - name: Install autotools
+      if: runner.os == 'macOS'
+      run: |
+            brew install autoconf automake libtool
+            brew install llvm libomp
+            export CC=/usr/local/opt/llvm/bin/clang
+            export CXX=/usr/local/opt/llvm/bin/clang++
+            export PATH="/usr/local/opt/llvm/bin:$PATH"
+            echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> ~/.profile
+            export LDFLAGS="-L/usr/local/opt/llvm/lib"
+            export CPPFLAGS="-I/usr/local/opt/llvm/include"
+    - name: Run autogen
+      run: ./autogen.sh
+    - name: Run configure
+      run: ./configure
+    - name: Run make (macOS)
+      if: runner.os == 'macOS'
+      run: make CC=/usr/local/opt/llvm/bin/clang CXX=/usr/local/opt/llvm/bin/clang++
+    - name: Run make (linux)
+      if: runner.os == 'linux'
+      run: make
+    - name: Download data
+      run: |
+           mkdir Data;
+           cd Data;
+           wget https://rice.box.com/shared/static/jp7wf4x1e5wt83ta4lnig8s42s0sou9p.gz;
+           tar -xvf jp7wf4x1e5wt83ta4lnig8s42s0sou9p.gz;
+    - name: Run KOMB.py
+      run: python KOMB.py -i Data/copyful.e.test0_R1.fastq 
+                          -j Data/copyful.e.test0_R2.fastq 
+                          -k 35 
+                          -o example_output_0 
+                          -e example_logfile_0.log 
+                          -v 0 
+                          -t 4 
+                          -c 1
+                          
+    - name: Check KOMB output
+      id: check_files
+      uses: andstor/file-existence-action@v2.0.0
+      with:
+        files: "example_output_0/kcore.tsv" 
+        fail: true
+    
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: komb-out-and-log
+        path: example_*
+        retention-days: 5
