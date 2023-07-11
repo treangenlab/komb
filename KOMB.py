@@ -55,13 +55,22 @@ class RunEnvironment():
             komb2_path = result.stdout.strip()
             return komb2_path
         except subprocess.CalledProcessError:
-            self.log("Komb executable not in $PATH, looking for the executable in the directory.", logging.WARNING)
+            pass
 
-        # Try to locate in src subdirectory:
-        current_directory = os.getcwd()
-        komb_directory = os.path.join(current_directory, 'src')
+        # Try to locate in current directory / src subdirectory:
+        komb_directory = os.getcwd()
         komb2_path = os.path.join(komb_directory, 'komb2')
+
         if os.path.exists(komb_directory) and os.path.isfile(komb2_path):
+            self.log(f"Using komb2 executable found at {komb2_path}. If this is the wrong one, " \
+                            + "please add the correct executable to the $PATH", logging.WARNING)
+            return komb2_path
+
+        src_directory = os.path.join(komb_directory, 'src')
+        komb2_path = os.path.join(src_directory, 'komb2')
+        if os.path.exists(src_directory) and os.path.isfile(komb2_path):
+            self.log(f"Using komb2 executable found at {komb2_path}. If this is the wrong one, " \
+                            + "please add the correct executable to the $PATH", logging.WARNING)
             return komb2_path
 
         # Execute custom command to search for komb2 executable
