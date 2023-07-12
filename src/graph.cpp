@@ -190,8 +190,8 @@ namespace komb
 
     void Kgraph::runCore(igraph_t &graph, const std::string &dir, std::map<std::string, std::string> &unitigs)
     {
-	    std::time_t result = std::time(nullptr);
-	    fprintf(stdout, "Pre-core time: %s\n", std::asctime(std::localtime(&result)));
+	std::time_t result = std::time(nullptr);
+	fprintf(stdout, "Pre-core time: %s\n", std::asctime(std::localtime(&result)));
 
         std::string kcore_file = dir+"/kcore.tsv";
         igraph_vector_int_t coreness, deg;
@@ -208,7 +208,7 @@ namespace komb
         }
         fclose(kcf);
         
-	    result = std::time(nullptr);
+	result = std::time(nullptr);
         fprintf(stdout, "Post-core time: %s\n", std::asctime(std::localtime(&result)));	
 
         runTruss(graph, dir, coreness, koresize, unitigs); // create truss file
@@ -220,7 +220,7 @@ namespace komb
 
     void Kgraph::runTruss(igraph_t &graph, const std::string&dir, igraph_vector_int_t &coreness, int koresize, std::map<std::string, std::string> &unitigs)
     {
-	    std::time_t result = std::time(nullptr);
+	std::time_t result = std::time(nullptr);
         fprintf(stdout, "Pre-truss time: %s\n", std::asctime(std::localtime(&result)));
 
         igraph_vector_int_t subgraph_nodes, map, invmap;
@@ -297,7 +297,7 @@ namespace komb
         
         nodes.clear();
 
-	    result = std::time(nullptr);
+	result = std::time(nullptr);
         fprintf(stdout, "Post-truss time: %s\n", std::asctime(std::localtime(&result)));
 
         igraph_vector_int_destroy(&subgraph_nodes);
