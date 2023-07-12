@@ -9,6 +9,7 @@
 #include <omp.h>
 #include <algorithm>
 #include <unordered_set>
+#include <ctime>
 
 using namespace gfa;
 
@@ -189,6 +190,9 @@ namespace komb
 
     void Kgraph::runCore(igraph_t &graph, const std::string &dir, std::map<std::string, std::string> &unitigs)
     {
+	std::time_t result = std::time(nullptr);
+	fprintf(stdout, "Pre-core time: %s\n", std::asctime(std::localtime(&result)));
+
         std::string kcore_file = dir+"/kcore.tsv";
         igraph_vector_int_t coreness, deg;
         igraph_vector_int_init(&coreness, 1);
@@ -204,6 +208,9 @@ namespace komb
         }
         fclose(kcf);
         
+	std::time_t result = std::time(nullptr);
+        fprintf(stdout, "Post-core time: %s\n", std::asctime(std::localtime(&result)));	
+
         runTruss(graph, dir, coreness, koresize, unitigs); // create truss file
 
         igraph_vector_int_destroy(&coreness);
@@ -213,6 +220,9 @@ namespace komb
 
     void Kgraph::runTruss(igraph_t &graph, const std::string&dir, igraph_vector_int_t &coreness, int koresize, std::map<std::string, std::string> &unitigs)
     {
+	std::time_t result = std::time(nullptr);
+        fprintf(stdout, "Pre-truss time: %s\n", std::asctime(std::localtime(&result)));
+
         igraph_vector_int_t subgraph_nodes, map, invmap;
 
         igraph_vector_int_init(&subgraph_nodes, 0);
@@ -239,7 +249,7 @@ namespace komb
         igraph_t subgraph;
         igraph_induced_subgraph_map(&graph, &subgraph, vids, IGRAPH_SUBGRAPH_AUTO, &map, &invmap);
         
-        fprintf(stdout, "%s%d%s\n", "Succesfully created a ", K, "-core subgraph.");
+        fprintf(stdout, "%s%d%s%d%s%d\n", "Succesfully created a ", K, "-core subgraph, size ", igraph_vcount(&subgraph), " with edges ", igraph_ecount(&subgraph));
 
         igraph_vector_int_t trussness;
         igraph_vector_int_init(&trussness, 0);
@@ -256,44 +266,40 @@ namespace komb
         std::unordered_set <int> nodes;
         int threshold = (int)igraph_vector_int_max(&trussness);
 
-        while (nodes.empty())
+        
+        for (int edge = 0; edge < trusssize; edge++)
         {
-            for (int edge = 0; edge < trusssize; edge++)
+            if (igraph_vector_int_get(&trussness, edge) == threshold)
             {
-                if (igraph_vector_int_get(&trussness, edge) >= threshold)
-                {
-                    // the nodes of this edge are in the vector, add them to output
+                // the nodes of this edge are in the vector, add them to output
 
-                    igraph_integer_t from, to;            
-                    igraph_edge(&subgraph, edge, &from, &to);
+                igraph_integer_t from, to;            
+                igraph_edge(&subgraph, edge, &from, &to);
 
-                    nodes.insert((int)igraph_vector_int_get(&invmap, from));
-                    nodes.insert((int)igraph_vector_int_get(&invmap, to));
-                }
-            }
-            // decrement threshold, in case current truss is empty
-            threshold--;
-            if (threshold <= 4)
-            {
-                break;
+                nodes.insert((int)igraph_vector_int_get(&invmap, from));
+                nodes.insert((int)igraph_vector_int_get(&invmap, to));
             }
         }
+
 
         for (int original_node : nodes)
         {
             // print to file
             std::string unitig_header = ">Unitig_"+std::to_string(original_node);
             fprintf(trussf,"%s\n",unitig_header.c_str());
-            
             auto key = unitigs.find(std::to_string(original_node));
             if (key != unitigs.end())
             {
                 fprintf(trussf,"%s\n", key->second.c_str());
             }
         }
-        fprintf(stdout, "%s%d%s%d%s%s\n","Found ", (int)nodes.size(), " unitigs in ", threshold+1,"-truss, saved at ", trussFile.c_str());
+        fprintf(stdout, "%s%d%s%d%s%s\n","Found ", (int)nodes.size(), " unitigs in ", threshold,"-truss, saved at ", trussFile.c_str());
         
         nodes.clear();
+
+	std::time_t result = std::time(nullptr);
+        fprintf(stdout, "Post-truss time: %s\n", std::asctime(std::localtime(&result)));
+
         igraph_vector_int_destroy(&subgraph_nodes);
         igraph_vector_int_destroy(&trussness);
         igraph_vector_int_destroy(&map);
