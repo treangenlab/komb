@@ -153,7 +153,7 @@ class RunEnvironment():
             type=int,
             default=-1,
             required=True,
-            help="k-mer size used for the *tig construction and subsequent analyses\nuse -1 to let KOMB automatically pick a value [default: -1]"
+            help=f"k-mer size used for the *tig construction and subsequent analyses\nuse -1 to let KOMB automatically pick a value [default: -1]"
         )
         common_args.add_argument(
             "-t",
@@ -167,7 +167,7 @@ class RunEnvironment():
             "--min-unitig-length",
             type=int,
             default=-1,
-            help="Minimum length of a unitig to be kept for the analysis.\n \
+            help=f"Minimum length of a unitig to be kept for the analysis.\n \
                   Value -1 indicates setting this to the read length [default]\n \
                   Value 0 would result in keeping all unitigs, and values > 0 will apply the filter"
         )
@@ -425,6 +425,7 @@ class RunEnvironment():
         if not self.args.keep_alignments:
             os.remove(f"{self.args.output_dir}/{self.args.input_reads1.split('/')[-1]}.sam")
             os.remove(f"{self.args.output_dir}/{self.args.input_reads2.split('/')[-1]}.sam")
+            shutil.rmtree(".temp_files")
 
 
 def main():
