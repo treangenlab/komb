@@ -175,8 +175,9 @@ namespace komb
         if (inpf == nullptr) { fileNotFoundError(edgelist_file); }
 
         igraph_read_graph_ncol(&graph, inpf, NULL, true, IGRAPH_ADD_WEIGHTS_NO, IGRAPH_UNDIRECTED);
-        igraph_simplify(&graph, true, true, /*edge_comb=*/ NULL); // discard multiple edges and self loops
         fclose(inpf);
+
+        igraph_simplify(&graph, /*multiple=*/ true, /*loops=*/ true, /*edge_comb=*/ NULL); // discard multiple edges and self loops
         
         fprintf(stdout, "GraphInfo...\n\tNumber of vertices: %d\n", (int) igraph_vcount(&graph));
         fprintf(stdout, "\tNumber of edges: %d\n", (int) igraph_ecount(&graph));
