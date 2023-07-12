@@ -334,7 +334,7 @@ class RunEnvironment():
 
 
     def RunBWAIndex(self):
-        cmd_str = f"bwa index {self.args.output_dir}/unitigs.l{self.args.min_unitig_length}.fasta"
+        cmd_str = f"bwa-mem2 index {self.args.output_dir}/unitigs.l{self.args.min_unitig_length}.fasta"
 
         p = subprocess.Popen(
             cmd_str,
@@ -350,16 +350,16 @@ class RunEnvironment():
         rc = p.returncode
 
         if rc != 0:
-            self.logger.critical(f"BWA index failed executing:\n{cmd_str}\n\nSTDOUT:{fstdout}\n\nSTDERR:{fstderr}")
+            self.logger.critical(f"BWA-MEM2 index failed executing:\n{cmd_str}\n\nSTDOUT:{fstdout}\n\nSTDERR:{fstderr}")
             sys.exit(rc)
         else:
             self.log(fstdout, logging.DEBUG)
             self.log(fstderr, logging.DEBUG)
 
 
-    def RunBWAMem(self):
-        def __bwamem(reads):
-            cmd_str = f"bwa mem \
+    def RunBWAMem2(self):
+        def __bwamem2(reads):
+            cmd_str = f"bwa-mem2 mem \
                         -a \
                         -k {self.args.min_seed_length} \
                         -t {self.args.num_threads} \
@@ -381,14 +381,14 @@ class RunEnvironment():
             rc = p.returncode
 
             if rc != 0:
-                self.logger.critical(f"BWA MEM failed executing:\n{cmd_str}\n\nSTDOUT:{fstdout}\n\nSTDERR:{fstderr}")
+                self.logger.critical(f"BWA-MEM2 failed executing:\n{cmd_str}\n\nSTDOUT:{fstdout}\n\nSTDERR:{fstderr}")
                 sys.exit(rc)
             else:
                 self.log(fstdout, logging.DEBUG)
                 self.log(fstderr, logging.DEBUG)
         
-        __bwamem(self.args.input_reads1)
-        __bwamem(self.args.input_reads2)
+        __bwamem2(self.args.input_reads1)
+        __bwamem2(self.args.input_reads2)
 
 
     def RunKOMB(self):
@@ -438,9 +438,9 @@ def main():
     t2 = time.time_ns()
     run_env.RunBWAIndex()   # Build BWA index of the unitigs
     t3 = time.time_ns()
-    run_env.RunBWAMem()     # Map reads back to the unitigs
+    run_env.RunBWAMem2()     # Map reads back to the unitigs
     t4 = time.time_ns()
-    run_env.log(f"Finished BWA index construction in {(t3-t2)/1000000.0:.3f} ms", logging.INFO)
+    run_env.log(f"Finished BWA-MEM2 index construction in {(t3-t2)/1000000.0:.3f} ms", logging.INFO)
     run_env.log(f"Finished read mapping in {(t4-t3)/1000000.0:.3f} ms", logging.INFO)
     t5 = time.time_ns()
     run_env.RunKOMB()       # Run KOMB constructing the graph and computing K-core decomposition
