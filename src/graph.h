@@ -40,7 +40,7 @@ namespace komb
         void generateGraph(vvec &vec, const std::string& dir);
         void readEdgeList(const std::string &dir, const std::string &inputUnitigs);
         static void runCore(igraph_t &graph, const std::string& dir, std::map<std::string, std::string> &unitigs);
-        static void runTruss(igraph_t &graph, const std::string &dir, igraph_vector_int_t &coreness, int koresize, std::map<std::string, std::string> &unitigs);
+        static void runTruss(igraph_t &graph, const std::string &dir, igraph_vector_int_t &subgraph_nodes, const int K, std::map<std::string, std::string> &unitigs);
         std::map<std::string, std::string> readUnitigsFile(const std::string& inputUnitigs);
         void combineFile(const std::string& dir, const std::string& inputUnitigs);
         void anomalyDetection(const std::string& dir, bool weight);
