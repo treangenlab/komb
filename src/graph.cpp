@@ -8,7 +8,10 @@
 #include "graph.h"
 #include <omp.h>
 #include <algorithm>
+#include <set>
 #include <unordered_set>
+#include <unordered_map>
+#include <chrono>
 
 using namespace gfa;
 
@@ -30,204 +33,362 @@ namespace komb
         exit(EXIT_FAILURE);
     }
 
-    void Kgraph::readSAM(const std::string &samfile, umapset &umap, bool fulgor)
+    void Kgraph::readSAM(const std::string &samfile, umapset &umap, std::unordered_map<std::string, long> &unitig_id_to_vid_map, long *vid, bool fulgor)
     {
         FILE* f = fopen(samfile.c_str(), "r");
         if (f == nullptr) { fileNotFoundError(samfile); }
-        char* line = nullptr;
+        char* file_buffer;
         size_t len;
-        ssize_t bytes_read;
+        uint64_t file_size;
+        uint64_t bytes_read;
 
-        while(bytes_read = getline(&line, &len, f) != -1)
+        // Get file size
+        fseek(f, 0, SEEK_END);
+        file_size = ftell(f);
+        rewind(f);
+
+        // Allocate memory and slurp the whole file in
+        file_buffer = (char *) malloc(sizeof(char)*file_size);
+        if (file_buffer == NULL) 
+        { 
+            std::cerr << "Could not allocate memory for reading " << samfile << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        bytes_read = fread(file_buffer, 1, file_size, f);
+        if (bytes_read != file_size) 
         {
-            if (!fulgor) {
+            std::cerr << "Encountered error while reading " << samfile << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        // Process file in parallel (based on: https://stackoverflow.com/questions/16812302/openmp-while-loop-for-text-file-reading-and-using-a-pipeline)
+        std::vector<uint64_t> *position;
+        umapset local_umaps[_threads];
+        #pragma omp parallel num_threads(_threads)
+        {
+            const int ithread = omp_get_thread_num();  // Get thread number to index into local umaps
+            #pragma omp single 
+            {
+                position = new std::vector<uint64_t>[_threads];
+                position[0].push_back(0);
+            }
+
+            #pragma omp for 
+            for(uint64_t i=0; i<bytes_read; ++i) 
+            {
+                if(file_buffer[i] == '\n' || file_buffer[i] == '\0') 
+                {
+                    position[ithread].push_back(i);
+                }
+            }
+
+            for (uint64_t i=1; i<position[ithread].size(); ++i)
+            {
+                // position points to location of '\n' so we need to offset by 1, unless it is the start aka 0
+                uint64_t start_pos = position[ithread][i-1]+1;
+                if(start_pos == 1) start_pos = 0;
+                char *line = &file_buffer[start_pos];
                 if(line[0] != '@')
                 {
-                    char* token = strtok(line, "\t");
+                    char* saveptr;
+                    char* token = strtok_r(line, "\t", &saveptr);
                     std::string read(token);
-                    uint8_t count = 0;
-                    while(token && (count < 2))
+                    uint8_t token_count = 0;
+                    while(token && (token_count < 2))
                     {
-                        token = strtok(NULL, "\t");
-                        count++;
+                        token = strtok_r(NULL, "\t", &saveptr);
+                        token_count++;
                     }
                     std::string unitig(token);
-                    if (unitig.compare("*") != 0) {  // '*' indicates an unmapped read in SAM
-                        umap[read.substr(1, read.find('/'))].insert(unitig);
+                    if (unitig.compare("*") != 0) 
+                    {  // '*' indicates an unmapped read in SAM
+                        local_umaps[ithread][read.substr(1, read.find('/'))].insert(unitig);
                     }
-                }
-            } else {
-                char* token = strtok(line, "\t");
-                std::string read(token);
-                token = strtok(NULL, "\t");
-                uint32_t count = std::stoi(token);
-                for(uint32_t i = 0; i < count; i++) {
-                    token = strtok(NULL, "\t");
-                    std::string unitig_id(token);
-                    unitig_id.erase(std::remove(unitig_id.begin(), unitig_id.end(), '\n'), unitig_id.cend());
-                    umap[read.substr(0, read.find('/'))].insert(unitig_id);
                 }
             }
         }
+        
+        // Now reduce per thread umaps into a single one
+        for (int i=0; i<_threads; ++i)
+        {
+            for (auto &it : local_umaps[i]) 
+            {
+                for (auto unitig_it = it.second.begin(); unitig_it!=it.second.end(); ++unitig_it)
+                {
+                    umap[it.first].insert((*unitig_it));
+                    if (auto uid2vid_it = unitig_id_to_vid_map.find((*unitig_it)); 
+                        uid2vid_it == unitig_id_to_vid_map.end()) 
+                    {
+                        unitig_id_to_vid_map[(*unitig_it)] = (*vid)++;  
+                    }
+                }
+            }
+        }
+        
+        // while(bytes_read = getline(&line, &len, f) != -1)
+        // {
+        //     if (!fulgor) {
+        //         if(line[0] != '@')
+        //         {
+        //             char* token = strtok(line, "\t");
+        //             std::string read(token);
+        //             uint8_t count = 0;
+        //             while(token && (count < 2))
+        //             {
+        //                 token = strtok(NULL, "\t");
+        //                 count++;
+        //             }
+        //             std::string unitig(token);
+        //             #pragma omp critical 
+        //             {
+        //                 if (unitig.compare("*") != 0) 
+        //                 {  // '*' indicates an unmapped read in SAM
+        //                     umap[read.substr(1, read.find('/'))].insert(unitig);
+        //                     if (auto uid2vid_it = unitig_id_to_vid_map.find(unitig); 
+        //                         uid2vid_it == unitig_id_to_vid_map.end()) 
+        //                     {
+        //                         unitig_id_to_vid_map[unitig] = vid++;
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     } else {
+        //         // THIS IS NOT UP TO DATE NOW
+        //         char* token = strtok(line, "\t");
+        //         std::string read(token);
+        //         token = strtok(NULL, "\t");
+        //         uint32_t count = std::stoi(token);
+        //         for(uint32_t i = 0; i < count; i++) {
+        //             token = strtok(NULL, "\t");
+        //             std::string unitig_id(token);
+        //             unitig_id.erase(std::remove(unitig_id.begin(), unitig_id.end(), '\n'), unitig_id.cend());
+        //             umap[read.substr(0, read.find('/'))].insert(unitig_id);
+        //         }
+        //     }
+        // }
     }
 
-    vvec Kgraph::getEdgeInfo(umapset &umap1, umapset &umap2)
+    void Kgraph::getEdgeInfo(umapset &umap1, umapset &umap2)
     {
-        vvec edgeinfo;
-        usset seen_set;
-        std::vector<std::string> pair_read;
-
-        //filtering singleton reads
-        for(auto & it : umap1)
+        /* Merge paired-end read information into umap1:
+            each key (read name) in umap1 will contain all unitig_IDs
+            that are connected by that read or via paired-end information.
+            This is OK since in a HUG that would always form a clique.
+         */
+        unsigned n = umap1.bucket_count();  
+        for(unsigned i=0; i<n; ++i)
         {
-            std::string read = it.first;
-            if (umap2.find(read) != umap2.end())
+            for(auto it1=umap1.begin(i); it1!=umap1.end(i); ++it1)
             {
-                pair_read.emplace_back(read);
-            }
-        }
-
-        //filter those sets already seen or that are a subset of previously seen sets
-        int num_reads = pair_read.size();
-        fprintf(stdout, "Num pairs to be processed: %d\n", num_reads);
-        //int workload = num_reads/_threads;
-        #pragma omp parallel for num_threads(_threads)
-        for(uint32_t i = 0; i < num_reads; i++)
-        {
-            std::set<std::string> tempset;
-            #pragma omp critical
-            {
-                tempset.insert(umap1[pair_read[i]].begin(), umap1[pair_read[i]].end());
-                tempset.insert(umap2[pair_read[i]].begin(), umap2[pair_read[i]].end());
-                if (tempset.size() > 1) 
+                std::string read = (*it1).first;
+                if (auto it2 = umap2.find(read); it2 != umap2.end())
                 {
-                    if (seen_set.find(tempset) == seen_set.end()) 
-                    {
-                        seen_set.insert(tempset);
-                        std::vector<std::string> tempvec{tempset.begin(), tempset.end()};
-                        edgeinfo.emplace_back(tempvec);
-                    }
+                    umap1[read].merge((*it2).second);  // Merge will skip unitig names that are already in umap1[read]
+                    umap2.erase(it2);  // All information now extracted, delete the element (reduces size of umap2 for the next step)
                 }
             }
+            // std::cout<<"Bucket "<<i<<" finished."<<std::endl;
         }
-        umapset().swap(umap1);
+        
+        // Now add any cliques that arise from singleton mappings in umap2
+        umap1.insert(umap2.begin(), umap2.end());
+        
+        // Clean up after ourselves; .swap() is currently preferred method
         umapset().swap(umap2);
-        return edgeinfo;
     }
 
-    void Kgraph::generateGraph(vvec& vec, const std::string& dir)
+    void Kgraph::generateGraph(umapset& umap, const std::string& dir, 
+                               std::unordered_map<std::string, long> &unitig_id_to_vid_map,
+                               igraph_vector_int_t &edges)
     {
         std::string edgelist_file = dir+"/edgelist.txt";
-        uspair seen_edge;
         FILE* ef = fopen(edgelist_file.c_str(), "w+");
-        int num_sets_unitigs = vec.size();
-        fprintf(stdout, "Number of unitig sets to interconnect: %zu\n", vec.size());
-        for(int i = 0; i < num_sets_unitigs; i++)
-        {
-            std::vector<std::string> tempvec = vec[i];
+        uspair seen_edges;
+        
+        // Convert to vector to allow simple parallelization
+        auto begin_vec = std::chrono::steady_clock::now();
+        
+        std::vector<std::vector<std::string>> cliques;
+        cliques.reserve(umap.size());
+        for(auto &it : umap) 
+        { 
+            std::vector<std::string> clique_nodes(it.second.begin(), it.second.end());
+            cliques.push_back(clique_nodes);
+        }
+        umapset().swap(umap);
 
-            #pragma omp parallel for collapse(2) num_threads(_threads)
-            for(uint32_t j = 0 ; j < tempvec.size(); j++)
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::steady_clock::now() - begin_vec).count() / 1000000.0;
+        fprintf(stdout, "\nTime elapsed for converting umapset to vec<vec>: %.3f s\n", duration);
+
+        auto begin_insert = std::chrono::steady_clock::now();
+
+        std::vector<long> local_edges[_threads];
+        #pragma omp parallel num_threads(_threads) shared(unitig_id_to_vid_map)
+        {
+            const int ithread = omp_get_thread_num();  // Get thread number to index into local edge vectors
+            #pragma omp for 
+            for(unsigned clique_id=0; clique_id<cliques.size(); ++clique_id)  
             {
-                for(uint32_t k = 1; k < tempvec.size(); k++)
+                for(unsigned i=0; i<cliques[clique_id].size(); ++i) 
                 {
-                    if(j > k)
+                    for(unsigned j=0; j<cliques[clique_id].size(); ++j)
                     {
-                        //prevent multiedges by only considering a particular ordering of nodes
-                        if(tempvec[j] > tempvec[k])
+                        if (i < j)  // OpenMP needs fixed bounds for parallelizing for loops, hence this
                         {
-                            //check if  edge already seen
-                            if (seen_edge.find(std::make_pair(tempvec[j], tempvec[k])) == seen_edge.end())
-                            {
-                                #pragma omp critical
-                                {
-                                    fprintf(ef,"%s\t%s\n", tempvec[j].c_str(), tempvec[k].c_str());
-                                    seen_edge.insert(std::make_pair(tempvec[j], tempvec[k]));
-                                }
-                            }
-                        }
-                        else
-                        {
-                            //check if edge already seen
-                            if (seen_edge.find(std::make_pair(tempvec[k], tempvec[j])) == seen_edge.end())
-                            {
-                                #pragma omp critical
-                                {
-                                    fprintf(ef, "%s\t%s\n", tempvec[k].c_str(), tempvec[j].c_str());
-                                    seen_edge.insert(std::make_pair(tempvec[k], tempvec[j]));
-                                }
-                            }
+                            std::string uid1 = cliques[clique_id][i];
+                            std::string uid2 = cliques[clique_id][j];
+                            // std::pair<std::string, std::string> edge;  
+                            // if (uid1 > uid2) edge = std::make_pair(uid2, uid1);
+                            // else edge = std::make_pair(uid1, uid2);
+
+                            local_edges[ithread].push_back(unitig_id_to_vid_map[uid1]);
+                            local_edges[ithread].push_back(unitig_id_to_vid_map[uid2]);
+                                // if (seen_edges.find(edge) == seen_edges.end()) 
+                                // {
+                                    // fprintf(ef, "%s\t%s\n", uid1.c_str(), uid2.c_str());
+                                    // Add an edge in igraph format (two conecutive vertex indices == an edge)
+                                    // igraph_vector_int_push_back(&edges, unitig_id_to_vid_map[uid1]); 
+                                    // igraph_vector_int_push_back(&edges, unitig_id_to_vid_map[uid2]); 
+                                    // seen_edges.insert(edge);
+                                // }
                         }
                     }
                 }
+            } 
+        }
+
+        duration = std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::steady_clock::now() - begin_insert).count() / 1000000.0;
+        fprintf(stdout, "\nTime elapsed for constructing local edges: %.3f s\n", duration);
+
+        uint64_t total_edge_countx2 = 0;
+        uint64_t edge_offsets[_threads];
+        for(int i=0; i<_threads; ++i) 
+        {
+            edge_offsets[i] = total_edge_countx2;
+            total_edge_countx2 += local_edges[i].size();
+        } 
+        igraph_vector_int_resize(&edges, total_edge_countx2); 
+        
+        #pragma omp parallel for shared(edges)
+        for(int i=0; i<_threads; ++i) 
+        {
+            for (int j=0; j<local_edges[i].size(); j+=2)
+            {
+                igraph_vector_int_set(&edges, edge_offsets[i]+j, local_edges[i][j]);
+                igraph_vector_int_set(&edges, edge_offsets[i]+j+1, local_edges[i][j+1]);
             }
         }
+
+        // unsigned n = umap.bucket_count();  // this allows parallelization since it's a well defined range
+        // #pragma omp parallel for num_threads(_threads) shared(seen_edges, edges)
+        // for(unsigned i=0; i<n; ++i)
+        // {   // Iterate through cliques in bucketed way for parallelization
+        //     for(auto it=umap.begin(i); it!=umap.end(i); ++it)
+        //     {
+        //         for(auto uid1=(*it).second.begin(); uid1!=(*it).second.end(); ++uid1)  // Iterate through unitig pairs in each clique
+        //         {
+        //             for(auto uid2=std::next(uid1); uid2!=(*it).second.end(); ++uid2)  // As long as no inserts happen the order should be the same
+        //             {
+        //                 std::pair<std::string, std::string> edge;  
+        //                 if ((*uid1) > (*uid2)) edge = std::make_pair((*uid2), (*uid1));
+        //                 else edge = std::make_pair((*uid1), (*uid2));
+
+        //                 #pragma omp critical  // Make sure only one thread at a time can write to file
+        //                 {
+        //                     if (seen_edges.find(edge) == seen_edges.end()) 
+        //                     {
+        //                         fprintf(ef, "%s\t%s\n", (*uid1).c_str(), (*uid2).c_str());
+        //                         // Add an edge in igraph format (two conecutive vertex indices == an edge)
+        //                         igraph_vector_int_push_back(&edges, unitig_id_to_vid_map[(*uid1)]); 
+        //                         igraph_vector_int_push_back(&edges, unitig_id_to_vid_map[(*uid2)]); 
+        //                         seen_edges.insert(edge);
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+
         fclose(ef);
-        vvec().swap(vec);
-        uspair().swap(seen_edge);
+        uspair().swap(seen_edges);
     }
 
-    void Kgraph::readEdgeList(const std::string& dir, const std::string& inputUnitigs)
+    void Kgraph::readEdgeList(const std::string& dir, const std::string& inputUnitigs, 
+                              std::unordered_map<std::string, long> &unitig_id_to_vid_map,
+                              igraph_vector_int_t &edges)
     {
-        std::string edgelist_file = dir+"/edgelist.txt";
+        // std::string edgelist_file = dir+"/edgelist.txt";
         igraph_t graph;
-        FILE* inpf = fopen(edgelist_file.c_str(), "r");
-        if (inpf == nullptr) { fileNotFoundError(edgelist_file); }
+        igraph_strvector_t vid_to_uid;
+        // FILE* inpf = fopen(edgelist_file.c_str(), "r");
+        // if (inpf == nullptr) { fileNotFoundError(edgelist_file); }
 
-        igraph_read_graph_ncol(&graph, inpf, NULL, true, IGRAPH_ADD_WEIGHTS_NO, IGRAPH_UNDIRECTED);
-        fclose(inpf);
+        long num_vertices = unitig_id_to_vid_map.size();
+        igraph_strvector_init(&vid_to_uid, num_vertices);
+        for (auto & uid2vid : unitig_id_to_vid_map) 
+        {
+            igraph_strvector_set_len(&vid_to_uid, uid2vid.second, uid2vid.first.c_str(), uid2vid.first.length());
+        }
+        igraph_create(&graph, &edges, num_vertices, 0 /* undirected */);
+        SETVASV(&graph, "name", &vid_to_uid);
 
+        // igraph_read_graph_ncol(&graph, inpf, NULL, true, IGRAPH_ADD_WEIGHTS_NO, IGRAPH_UNDIRECTED);
+        // fclose(inpf);
+
+        auto begin_simplify = std::chrono::steady_clock::now();
         igraph_simplify(&graph, /*multiple=*/ true, /*loops=*/ true, /*edge_comb=*/ NULL); // discard multiple edges and self loops
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::steady_clock::now() - begin_simplify).count() / 1000.0;
+        fprintf(stdout, "\nTime elapsed for simplifying graph: %.3f ms\n", duration);
         
         fprintf(stdout, "GraphInfo...\n\tNumber of vertices: %d\n", (int) igraph_vcount(&graph));
         fprintf(stdout, "\tNumber of edges: %d\n", (int) igraph_ecount(&graph));
         
-        std::map<std::string, std::string> unitigs = Kgraph::readUnitigsFile(inputUnitigs);
+        std::unordered_map<std::string, std::string> unitigs = Kgraph::readUnitigsFile(inputUnitigs);
 
         runCore(graph, dir, unitigs);
     }
 
-    void Kgraph::runCore(igraph_t &graph, const std::string &dir, std::map<std::string, std::string> &unitigs)
+    void Kgraph::runCore(igraph_t &graph, const std::string &dir, std::unordered_map<std::string, std::string> &unitigs)
     {
         std::string kcore_file = dir+"/kcore.tsv";
-        igraph_vector_int_t coreness, deg;
+        igraph_vector_int_t coreness, deg, subgraph_nodes;
+        igraph_vector_int_init(&subgraph_nodes, 0);
         igraph_vector_int_init(&coreness, 1);
         igraph_vector_int_init(&deg, 1);
         igraph_degree(&graph, &deg, igraph_vss_all(), IGRAPH_ALL, IGRAPH_NO_LOOPS);
         igraph_coreness(&graph, &coreness, IGRAPH_ALL);
         FILE* kcf = fopen(kcore_file.c_str(), "w+");
         int koresize = igraph_vector_int_size(&coreness);
+        const int max_coreness = (int)igraph_vector_int_max(&coreness);
         fprintf(kcf, "#VID\tName\tCoreness\tDegree\n");
         for(int i = 0; i < koresize; i++)
         {
+            if ((int) VECTOR(coreness)[i] == max_coreness) 
+            {
+                igraph_vector_int_push_back(&subgraph_nodes, i);
+            }
             fprintf(kcf, "%d\t%s\t%d\t%d\n", i, igraph_cattribute_VAS(&graph, "name", i), (int) VECTOR(coreness)[i], (int) VECTOR(deg)[i]);
         }
         fclose(kcf);
         
-        runTruss(graph, dir, coreness, koresize, unitigs); // create truss file
+        // runTruss(graph, dir, subgraph_nodes, max_coreness, unitigs); // create truss file
 
+        igraph_vector_int_destroy(&subgraph_nodes);
         igraph_vector_int_destroy(&coreness);
         igraph_vector_int_destroy(&deg);
         igraph_destroy(&graph);
     }
 
-    void Kgraph::runTruss(igraph_t &graph, const std::string&dir, igraph_vector_int_t &coreness, int koresize, std::map<std::string, std::string> &unitigs)
+    void Kgraph::runTruss(igraph_t &graph, const std::string&dir, igraph_vector_int_t &subgraph_nodes, const int K, std::unordered_map<std::string, std::string> &unitigs)
     {
-        igraph_vector_int_t subgraph_nodes, map, invmap;
+        igraph_vector_int_t map, invmap;
 
-        igraph_vector_int_init(&subgraph_nodes, 0);
         igraph_vector_int_init(&map, 0);
         igraph_vector_int_init(&invmap, 0);
 
-        int K = (int)igraph_vector_int_max(&coreness);
-        for (int i = 0; i < koresize; i++)
-        {
-            // get vector of nodes in maximal core
-            if ((int)igraph_vector_int_get(&coreness, i) == K)
-            {
-                igraph_vector_int_push_back(&subgraph_nodes, i);
-            }
-        }
         // transform to vertex selector -- just igraph stuff...
         igraph_vs_t vids;
         igraph_vs_vector(&vids, &subgraph_nodes);
@@ -239,7 +400,7 @@ namespace komb
         igraph_t subgraph;
         igraph_induced_subgraph_map(&graph, &subgraph, vids, IGRAPH_SUBGRAPH_AUTO, &map, &invmap);
         
-        fprintf(stdout, "%s%d%s\n", "Succesfully created a ", K, "-core subgraph.");
+        fprintf(stdout, "%s%d%s%d%s\n", "Succesfully created a ", K, "-core subgraph, with ", (int) igraph_ecount(&subgraph), " edges.");
 
         igraph_vector_int_t trussness;
         igraph_vector_int_init(&trussness, 0);
@@ -256,14 +417,13 @@ namespace komb
         std::unordered_set <int> nodes;
         int threshold = (int)igraph_vector_int_max(&trussness);
 
-        while (nodes.empty())
-        {
+        // while (nodes.empty())
+        // {
             for (int edge = 0; edge < trusssize; edge++)
             {
                 if (igraph_vector_int_get(&trussness, edge) >= threshold)
                 {
                     // the nodes of this edge are in the vector, add them to output
-
                     igraph_integer_t from, to;            
                     igraph_edge(&subgraph, edge, &from, &to);
 
@@ -271,21 +431,23 @@ namespace komb
                     nodes.insert((int)igraph_vector_int_get(&invmap, to));
                 }
             }
-            // decrement threshold, in case current truss is empty
-            threshold--;
-            if (threshold <= 4)
-            {
-                break;
-            }
-        }
+        //     // decrement threshold, in case current truss is empty
+        //     threshold--;
+        //     if (threshold <= 4)
+        //     {
+        //         break;
+        //     }
+        // }
 
+        // print to file
         for (int original_node : nodes)
         {
-            // print to file
-            std::string unitig_header = ">Unitig_"+std::to_string(original_node);
+            // Looks up the original unitig name based on the vertex ID
+            std::string unitig_name = igraph_cattribute_VAS(&graph, "name", original_node); 
+            std::string unitig_header = ">Unitig_"+unitig_name;
             fprintf(trussf,"%s\n",unitig_header.c_str());
             
-            auto key = unitigs.find(std::to_string(original_node));
+            auto key = unitigs.find(unitig_name);
             if (key != unitigs.end())
             {
                 fprintf(trussf,"%s\n", key->second.c_str());
@@ -294,15 +456,14 @@ namespace komb
         fprintf(stdout, "%s%d%s%d%s%s\n","Found ", (int)nodes.size(), " unitigs in ", threshold+1,"-truss, saved at ", trussFile.c_str());
         
         nodes.clear();
-        igraph_vector_int_destroy(&subgraph_nodes);
         igraph_vector_int_destroy(&trussness);
         igraph_vector_int_destroy(&map);
         igraph_vector_int_destroy(&invmap);
     }
 
-    std::map<std::string, std::string> Kgraph::readUnitigsFile(const std::string& inputUnitigs)
+    std::unordered_map<std::string, std::string> Kgraph::readUnitigsFile(const std::string& inputUnitigs)
     {
-        std::map<std::string, std::string> unitigs;
+        std::unordered_map<std::string, std::string> unitigs;
         FILE* fp = fopen(inputUnitigs.c_str(),"r");
         if (fp == nullptr) { fileNotFoundError(inputUnitigs); }
         std::string unitig_num; 
@@ -329,7 +490,7 @@ namespace komb
     void Kgraph::combineFile(const std::string& dir, const std::string& inputUnitigs)
     {    
         std::vector<std::vector<std::string> > kcore_lines;
-        std::map<std::string, std::string> unitigs;
+        std::unordered_map<std::string, std::string> unitigs;
         
         const std::string kcf = dir + "/kcore.tsv";
 
@@ -405,7 +566,7 @@ namespace komb
         std::string anomalyFile = dir+"/top_scoring_anomalous_unitigs.txt";
         std::string backgroundFile = dir+"/low_scoring_anomalous_unitigs.txt";
         std::string coreAf =  dir+"/CoreA_anomaly.txt";
-        std::map<std::string, std::string> unitigs = Kgraph::readUnitigsFile(inputUnitigs);
+        std::unordered_map<std::string, std::string> unitigs = Kgraph::readUnitigsFile(inputUnitigs);
         std::vector<std::vector<std::string> > coreA_lines;
         FILE* inp_coreAf = fopen(coreAf.c_str(), "r");
         if (inp_coreAf == nullptr) { fileNotFoundError(coreAf); }

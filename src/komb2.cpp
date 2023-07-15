@@ -73,47 +73,52 @@ int main(int argc, const char** argv)
     bool fulgor = fulgorSwitch.getValue();
 
     const bool isBifrost = false;
-
-   /* create output dir */
-   //  const std::string create_dir = "mkdir " + outdir;
-   //  int return_val = std::system(create_dir.c_str());
-   //  if (return_val != 0) { 
-   //    std::cerr << "Could not create output directory: " << create_dir << ". Exiting..." << std::endl;
-   //    exit(EXIT_FAILURE);
-   //  }
-
+    
     /* run KOMB core */
     igraph_set_attribute_table(&igraph_cattribute_table);  // to correctly handle arbitrary unitig names
     auto kg = komb::Kgraph(threads, readlen);  // use this instantiation
     umapset umap1, umap2;
-
-    #pragma omp parallel
-    {
-        #pragma omp single
-        {
-            //#pragma omp task
-            kg.readSAM(input, umap1, fulgor);
-            //#pragma omp task
-            kg.readSAM(input2, umap2, fulgor);
-        }
-    }
-
-   //  fprintf(stdout, "Read SAM files\n");
-    
+    std::unordered_map<std::string, long> unitig_id_to_vid_map;
+    igraph_vector_int_t edges;
+    long vid = 0;
     auto begin_komb = std::chrono::steady_clock::now();
-    vvec edgeinfo = kg.getEdgeInfo(umap1, umap2);
-   //  fprintf(stdout, "Processed edgeinfo\n");
-    kg.generateGraph(edgeinfo, outdir);
-   //  fprintf(stdout, "Created edgelist\n");
-    kg.readEdgeList(outdir, inputUnitigs);
+
+   //  #pragma omp parallel
+   //  {
+   //      #pragma omp single
+   //      {
+            //#pragma omp task
+            kg.readSAM(input, umap1, unitig_id_to_vid_map, &vid, fulgor);
+            //#pragma omp task
+            kg.readSAM(input2, umap2, unitig_id_to_vid_map, &vid, fulgor);
+   //      }
+   //  }
+    
+    auto post_sam = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+            post_sam - begin_komb).count() / 1000000.0;
+    fprintf(stdout, "\nTime elapsed for reading SAMs: %.3f s\n", duration);
+    kg.getEdgeInfo(umap1, umap2);
+    auto post_edgeinfo = std::chrono::steady_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(
+            post_edgeinfo - post_sam).count() / 1000000.0;
+    fprintf(stdout, "\nTime elapsed for edgeInfo: %.3f s\n", duration);
+    unsigned vertex_count = unitig_id_to_vid_map.size();
+    igraph_vector_int_init(&edges, vertex_count);  // Start at the |V| count as each vertex included has deg >= 1 
+    kg.generateGraph(umap1, outdir, unitig_id_to_vid_map, edges);
+    auto post_generate = std::chrono::steady_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(
+            post_generate - post_edgeinfo).count() / 1000000.0;
+    fprintf(stdout, "\nTime elapsed for generateGraph: %.3f s\n", duration);
+    igraph_vector_int_resize_min(&edges);  // Free up any extra memory unused by edges
+    kg.readEdgeList(outdir, inputUnitigs, unitig_id_to_vid_map, edges);
     fprintf(stdout, "Created Kcore\n");
     kg.combineFile(outdir, inputUnitigs);
-    //int weight = 10; /* fix weight as 10 for now */
     kg.anomalyDetection(outdir, true);
     fprintf(stdout,"Identified anomalous unitigs\n");
     kg.splitAnomalousUnitigs(outdir, inputUnitigs);
     fprintf(stdout,"Created anomalouss unitigs file\n");
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::steady_clock::now() - begin_komb).count() / 1000000.0;
     fprintf(stdout, "\nTime elapsed for KOMB: %.3f ms\n", duration);
     duration = std::chrono::duration_cast<std::chrono::microseconds>(
