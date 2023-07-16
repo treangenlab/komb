@@ -80,9 +80,11 @@ int main(int argc, const char** argv)
     umapset umap1, umap2;
     std::unordered_map<std::string, long> unitig_id_to_vid_map;
     igraph_vector_int_t edges;
+    igraph_t graph;
     long vid = 0;
     auto begin_komb = std::chrono::steady_clock::now();
 
+//     kg.read2SAM(input, input2, umap1, unitig_id_to_vid_map, &vid, fulgor);
    //  #pragma omp parallel
    //  {
    //      #pragma omp single
@@ -98,11 +100,13 @@ int main(int argc, const char** argv)
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
             post_sam - begin_komb).count() / 1000000.0;
     fprintf(stdout, "\nTime elapsed for reading SAMs: %.3f s\n", duration);
+   
     kg.getEdgeInfo(umap1, umap2);
     auto post_edgeinfo = std::chrono::steady_clock::now();
     duration = std::chrono::duration_cast<std::chrono::microseconds>(
             post_edgeinfo - post_sam).count() / 1000000.0;
     fprintf(stdout, "\nTime elapsed for edgeInfo: %.3f s\n", duration);
+   
     unsigned vertex_count = unitig_id_to_vid_map.size();
     igraph_vector_int_init(&edges, vertex_count);  // Start at the |V| count as each vertex included has deg >= 1 
     kg.generateGraph(umap1, outdir, unitig_id_to_vid_map, edges);
@@ -110,20 +114,36 @@ int main(int argc, const char** argv)
     duration = std::chrono::duration_cast<std::chrono::microseconds>(
             post_generate - post_edgeinfo).count() / 1000000.0;
     fprintf(stdout, "\nTime elapsed for generateGraph: %.3f s\n", duration);
+   
     igraph_vector_int_resize_min(&edges);  // Free up any extra memory unused by edges
-    kg.readEdgeList(outdir, inputUnitigs, unitig_id_to_vid_map, edges);
+    kg.readEdgeList(graph, outdir, inputUnitigs, unitig_id_to_vid_map, edges);
     fprintf(stdout, "Created Kcore\n");
-    kg.combineFile(outdir, inputUnitigs);
-    kg.anomalyDetection(outdir, true);
+    auto post_core = std::chrono::steady_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(
+            post_core - post_generate).count() / 1000000.0;
+    fprintf(stdout, "\nTime elapsed for edgeInfo: %.3f s\n", duration);
+
+//     kg.combineFile(outdir, inputUnitigs);
+    auto post_combine = std::chrono::steady_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(
+            post_combine - post_core).count() / 1000000.0;
+    fprintf(stdout, "\nTime elapsed for combineFile: %.3f s\n", duration);
+
+    kg.anomalyDetection(graph, outdir, true);
+    auto post_anomaly = std::chrono::steady_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(
+            post_anomaly - post_combine).count() / 1000000.0;
+    fprintf(stdout, "\nTime elapsed for anomalyDetection: %.3f s\n", duration);
+
     fprintf(stdout,"Identified anomalous unitigs\n");
-    kg.splitAnomalousUnitigs(outdir, inputUnitigs);
+//     kg.splitAnomalousUnitigs(outdir, inputUnitigs);
     fprintf(stdout,"Created anomalouss unitigs file\n");
     duration = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::steady_clock::now() - begin_komb).count() / 1000000.0;
-    fprintf(stdout, "\nTime elapsed for KOMB: %.3f ms\n", duration);
+    fprintf(stdout, "\nTime elapsed for KOMB: %.3f s\n", duration);
     duration = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::steady_clock::now() - begin).count() / 1000000.0;
-    fprintf(stdout, "\nTime elapsed for analysis (msec) = %.3f \n", duration);
+    fprintf(stdout, "\nTime elapsed for analysis (sec) = %.3f \n", duration);
         
     return 0;
 
