@@ -5,5 +5,5 @@ channels:
   - defaults
 dependencies:
   - igraph=0.10.4
-  - bwa
+  - bwa-mem2
   - seqkit

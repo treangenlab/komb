@@ -23,6 +23,9 @@ def handler(signum, frame):
 signal.signal(signal.SIGINT, handler)
 
 class RunEnvironment():
+    RUNMODE_SINGLE = 1  # For processing a single pair of read files at a time. Default mode
+    RUNMODE_GROUP  = 2  # For processing many read files as a single pooled experiment. 
+
     def __init__(self):
         self.CURRDATE = datetime.today().strftime('%Y-%m-%d')
         self.CURRTIME = datetime.today().strftime('%H:%M:%S')
@@ -31,7 +34,9 @@ class RunEnvironment():
         self.PATH_TO_KOMB = self.get_path_to_komb()
         
         if not self.PATH_TO_KOMB:
-            sys.exit("Komb executable cannot be located, please add executable to $PATH or current directory.")
+            self.log("Komb executable cannot be located, please add executable to $PATH or current directory.", 
+                     logging.CRITICAL)
+            exit(-1)
 
         try:
             os.mkdir(self.args.output_dir)
@@ -39,13 +44,38 @@ class RunEnvironment():
             if exc.errno == errno.EEXIST and not self.args.overwrite:
                 self.log(f"File or directory {self.args.output_dir} already exists.\nIf you want to overwrite use flag --overwrite.", 
                          logging.CRITICAL)
+                exit(-1)
             elif exc.errno == errno.EEXIST:
                 self.log(f"File or directory {self.args.output_dir} already exists and will be deleted.", 
                          logging.WARNING)
-                if self.args.log_file not in ["stdout", "stderr"]:
-                    os.remove(self.args.log_file)
                 shutil.rmtree(self.args.output_dir)
                 os.mkdir(self.args.output_dir)
+
+        if (not self.args.input_reads1) or (not self.args.input_reads2):
+            if not self.args.file_list:
+                self.log(f"No input files provided. Please make sure to either provide two read files via -i and -j options\n\
+                          OR in case if you want to process multiple samples jointly, provide a file list via --file-list option.")
+                exit(-1)
+            else:
+                self.mode = self.RUNMODE_GROUP
+                self.input_files = []
+        else:
+            self.mode = self.RUNMODE_SINGLE
+            self.input_files = [self.args.input_reads1, self.args.input_reads2]
+
+        # Create a flat file for GGCAT to use as file list
+        if self.mode == self.RUNMODE_GROUP:
+            try:
+                with open(self.args.file_list, "r") as inf, open("flat_file_list.txt", "w")  as outf:
+                    for line in inf:
+                        file1, file2 = line.strip('\n').split('\t')
+                        self.input_files.append(file1)
+                        self.input_files.append(file2)
+                        outf.write(f"{file1}\n")
+                        outf.write(f"{file2}\n") 
+            except FileNotFoundError:
+                self.log(f"File {self.args.file_list} could not be found. Exiting...", logging.CRITICAL)
+                exit(-1)
 
 
     def get_path_to_komb(self):
@@ -111,15 +141,19 @@ class RunEnvironment():
             "-i",
             "--input-reads1",
             type=str,
-            required=True,
             help="Path to the first sequencing reads file for paired-end data in FASTQ format"
         )
         io_args.add_argument(
             "-j",
             "--input-reads2",
             type=str,
-            required=True,
             help="Path to the second sequencing reads file for paired-end data in FASTQ format"
+        )
+        io_args.add_argument(
+            "--file-list",
+            type=str,
+            help=f"Path to a file containing paths to read files (tab separated, one pair per line)\n\
+                   Note: this is mutually exclusive with -i and -j arguments."
         )
         io_args.add_argument(
             "-o",
@@ -235,7 +269,7 @@ class RunEnvironment():
         elif self.args.log_file == "stderr":
             handler = logging.StreamHandler(stream=sys.stderr)
         else:
-            handler = logging.FileHandler(self.args.log_file)
+            handler = logging.FileHandler(self.args.log_file, mode='w')
         
         error_handler = logging.StreamHandler(stream=sys.stderr)
         error_handler.setLevel(logging.ERROR)
@@ -271,6 +305,7 @@ class RunEnvironment():
 
     def RunGGCAT(self):
         cmd_str = f"ggcat build \
+                    -p \
                     -k {self.args.kmer_size} \
                     -j {self.args.num_threads} \
                     -m {self.args.ggcat_memory} \
@@ -282,7 +317,13 @@ class RunEnvironment():
             cmd_str += "--greedy-matchtigs "
         elif self.args.pathtigs:
             cmd_str += "--pathtigs "
-        cmd_str += f"{self.args.input_reads1} {self.args.input_reads2}"
+        if self.mode == self.RUNMODE_SINGLE:
+            cmd_str += f"{self.args.input_reads1} {self.args.input_reads2}"
+        elif self.mode == self.RUNMODE_GROUP:
+            cmd_str += f"-l flat_file_list.txt"
+        else:
+            self.log("Unsupported RUNMODE selected. This should vever happen!")
+            exit(-1)
 
         p = subprocess.Popen(
             cmd_str,
@@ -334,7 +375,7 @@ class RunEnvironment():
 
 
     def RunBWAIndex(self):
-        cmd_str = f"bwa index {self.args.output_dir}/unitigs.l{self.args.min_unitig_length}.fasta"
+        cmd_str = f"bwa-mem2 index {self.args.output_dir}/unitigs.l{self.args.min_unitig_length}.fasta"
 
         p = subprocess.Popen(
             cmd_str,
@@ -359,7 +400,7 @@ class RunEnvironment():
 
     def RunBWAMem(self):
         def __bwamem(reads):
-            cmd_str = f"bwa mem \
+            cmd_str = f"bwa-mem2 mem \
                         -a \
                         -k {self.args.min_seed_length} \
                         -t {self.args.num_threads} \
@@ -387,8 +428,8 @@ class RunEnvironment():
                 self.log(fstdout, logging.DEBUG)
                 self.log(fstderr, logging.DEBUG)
         
-        __bwamem(self.args.input_reads1)
-        __bwamem(self.args.input_reads2)
+        for read_file in self.input_files:
+            __bwamem(read_file)
 
 
     def RunKOMB(self):
@@ -423,8 +464,8 @@ class RunEnvironment():
 
     def RunCleanup(self):
         if not self.args.keep_alignments:
-            os.remove(f"{self.args.output_dir}/{self.args.input_reads1.split('/')[-1]}.sam")
-            os.remove(f"{self.args.output_dir}/{self.args.input_reads2.split('/')[-1]}.sam")
+            for read_file in self.input_files:
+                os.remove(f"{self.args.output_dir}/{read_file.split('/')[-1]}.sam")
             shutil.rmtree(".temp_files")
 
 

@@ -77,7 +77,7 @@ jobs:
       id: check_files
       uses: andstor/file-existence-action@v2.0.0
       with:
-        files: "example_output_0/kcore.tsv" 
+        files: "example_output_0/kcore.tsv, example_output_0/unitigs.fasta, example_output_0/CoreA_anomaly.txt, example_output_0/edgelist.txt" 
         fail: true
     
     - name: Archive production artifacts

@@ -15,23 +15,30 @@ conda create --name komb-env python=3.9
 conda config --add channels conda-forge
 conda config --add channels bioconda
 ```
-2. Install dependencies
+2. Install dependencies available through `conda`
 ```
-conda install ggcat
-conda install bwa
+conda install bwa-mem2
 conda install seqkit
 conda install igraph=0.10.4
 ```
-Note: we have upgraded KOMB to be compatible with newer version of the [igraph library](https://igraph.org/c/) which means that the versions 0.8.3 and older no longer will work. We hope that igraph API will stay consitent going forward, but we have no way to ensure that.
-3. Clone the repo and buidl source code
+**Note:** we have upgraded KOMB to be compatible with newer version of the [igraph library](https://igraph.org/c/) which means that the versions 0.8.3 and older no longer will work. We hope that igraph API will stay consitent going forward, but we have no way to ensure that.
+3. Install `rustup` and `nightly` toolchain and build `ggcat` from source
+```
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+rustup toolchain install nightly
+git clone https://github.com/algbio/ggcat --recursive
+cd ggcat/
+cargo install --path crates/cmdline/ --locked
+```
+4. Clone the repo and build the source code
 ```
 git clone https://gitlab.com/treangenlab/komb.git.
 cd komb 
 ./autogen.sh
 ./configure
-make 
+make; make install
 ```
-4. Now you will have a `komb2` executable in the `komb/src` directory and you should be able to run `KOMB.py` in order to run the complete KOMB pipeline.
+5. Now you will have a `komb2` executable in the `komb/bin` directory and you should be able to run `KOMB.py` in order to run the complete KOMB pipeline.
 
 ## Quickstart example
 
