@@ -45,8 +45,6 @@ make; make install
 You can test KOMB by running the following command:    
 `KOMB.py -i example_data/reads1.fastq -j example_data/reads2.fastq -k 51`
 
-Example data is hosted on OSF at the following URL: [ADD URL] and on Zenodo under DOI: [ADD DOI].
-
 ## KOMB usage
 Full set of parameters available in the KOMB pipeline is shown below and can be accessed by running `python KOMB.py --help`.
 
