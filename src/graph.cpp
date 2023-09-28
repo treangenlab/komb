@@ -60,7 +60,7 @@ namespace komb
         exit(EXIT_FAILURE);
     }
 
-    
+  
     void Kgraph::readSAM(const std::string &samfile, umapset &umap, std::unordered_map<std::string, long> &unitig_id_to_vid_map, long *vid, bool fulgor)
     {
         FILE* f = fopen(samfile.c_str(), "r");
@@ -190,7 +190,7 @@ namespace komb
         // FILE* ef = fopen(edgelist_file.c_str(), "w+");
         uspair seen_edges;
         auto begin_vec = std::chrono::steady_clock::now();
-
+      
         std::vector<std::vector<std::string>> cliques;
         cliques.reserve(umap.size());
         for(auto &it : umap)
@@ -263,7 +263,6 @@ namespace komb
             }
         }
 
-        // fclose(ef);
         uspair().swap(seen_edges);
     }
 
@@ -271,12 +270,6 @@ namespace komb
                               std::unordered_map<std::string, long> &unitig_id_to_vid_map,
                               igraph_vector_int_t &edges)
     {
-        // std::string edgelist_file = dir+"/edgelist.txt";
-        // igraph_t graph;
-        // igraph_strvector_t vid_to_uid;
-        // FILE* inpf = fopen(edgelist_file.c_str(), "w");
-        // if (inpf == nullptr) { fileNotFoundError(edgelist_file); }
-
         std::vector<std::string> vid_to_uid (unitig_id_to_vid_map.size());
         for (auto & uid2vid : unitig_id_to_vid_map) 
         {
@@ -284,33 +277,8 @@ namespace komb
         }
 
         auto begin_graph = std::chrono::steady_clock::now();
-        // #pragma omp parallel num_threads(2)
-        // {
-        //     #pragma omp sections
-        //     {
-        //         #pragma omp section
-        //         {
-        //             long num_vertices = unitig_id_to_vid_map.size();
-        //             igraph_strvector_init(&vid_to_uid, num_vertices);
-        //             for (auto & uid2vid : unitig_id_to_vid_map) 
-        //             {
-        //                 igraph_strvector_set_len(&vid_to_uid, uid2vid.second, uid2vid.first.c_str(), uid2vid.first.length());
-        //             }
-                    igraph_create(&graph, &edges, unitig_id_to_vid_map.size(), 0 /* undirected */);
-                //     SETVASV(&graph, "name", &vid_to_uid);
-                // }
-        //         #pragma omp section
-        //         {
-        //             for(int i=0; i<igraph_vector_int_size(&edges); i+=2) 
-        //             {
-        //                 fprintf(inpf, "%ld\t%ld\n", VECTOR(edges)[i], VECTOR(edges)[i+1]);
-        //             }
-        //         }
-        //     }
-        // }
+        igraph_create(&graph, &edges, unitig_id_to_vid_map.size(), 0 /* undirected */);
         
-        // igraph_read_graph_ncol(&graph, inpf, NULL, true, IGRAPH_ADD_WEIGHTS_NO, IGRAPH_UNDIRECTED);
-        // fclose(inpf);
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
                 std::chrono::steady_clock::now() - begin_graph).count() / 1000000.0;
         fprintf(stdout, "\nTime elapsed for initializing igraph graph: %.3f s\n", duration);
@@ -327,11 +295,13 @@ namespace komb
         std::unordered_map<std::string, std::string> unitigs = Kgraph::readUnitigsFile(inputUnitigs);
 
         auto begin_kcore = std::chrono::steady_clock::now();
+
         runCore(graph, dir, unitigs, vid_to_uid);
         duration = std::chrono::duration_cast<std::chrono::microseconds>(
                 std::chrono::steady_clock::now() - begin_kcore).count() / 1000000.0;
         fprintf(stdout, "\nTime elapsed doing K-core decomposition: %.3f s\n", duration);
     }
+
 
     void Kgraph::runCore(igraph_t &graph, const std::string &dir, std::unordered_map<std::string, std::string> &unitigs,
                          std::vector<std::string> vid_to_uid_map)
@@ -353,6 +323,7 @@ namespace komb
             {
                 igraph_vector_int_push_back(&subgraph_nodes, i);
             }
+
             fprintf(kcf, "%d\t%s\t%d\t%d\n", i, vid_to_uid_map[i].c_str(), (int) VECTOR(coreness)[i], (int) VECTOR(deg)[i]);
         }
         fclose(kcf);

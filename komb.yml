@@ -4,6 +4,6 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - igraph=0.10.4
-  - bwa
+  - igraph>=0.10.0
+  - bwa-mem2
   - seqkit
