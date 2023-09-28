@@ -48,12 +48,11 @@ namespace komb
     public:
         Kgraph(uint32_t threads);
         Kgraph(uint32_t threads, uint64_t readlength);
-        void read2SAM(const std::string &samfile1, const std::string &samfile2, umapset &umap, std::unordered_map<std::string, long> &unitig_id_to_vid_map, long *vid, bool fulgor);
         void readSAM(const std::string &samfile, umapset &umap, std::unordered_map<std::string, long> &unitig_id_to_vid_map, long *vid, bool fulgor);
         void getEdgeInfo(umapset &umap1, umapset &umap2);
         void generateGraph(umapset &umap, const std::string& dir, std::unordered_map<std::string, long> &unitig_id_to_vid_map, igraph_vector_int_t &edges);
         void readEdgeList(igraph_t &graph, const std::string &dir, const std::string &inputUnitigs, std::unordered_map<std::string, long> &unitig_id_to_vid_map, igraph_vector_int_t &edges);
-        static void runCore(igraph_t &graph, const std::string& dir, std::unordered_map<std::string, std::string> &unitigs);
+        static void runCore(igraph_t &graph, const std::string& dir, std::unordered_map<std::string, std::string> &unitigs, std::vector<std::string> vid_to_uid);
         static void runTruss(igraph_t &graph, const std::string &dir, igraph_vector_int_t &subgraph_nodes, const int K, std::unordered_map<std::string, std::string> &unitigs);
         std::unordered_map<std::string, std::string> readUnitigsFile(const std::string& inputUnitigs);
         void combineFile(const std::string& dir, const std::string& inputUnitigs);
